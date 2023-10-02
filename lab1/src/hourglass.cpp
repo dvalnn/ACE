@@ -59,6 +59,8 @@ void hourglass::addTime(int timeToAdd) {
     _timeRemaining = newRemainingTime > _totalTime ? _totalTime : newRemainingTime;
 }
 
+// ------------------- Getters and setters -------------------
+
 ulong hourglass::getTimeRemaining() {
     return _timeRemaining;
 }
@@ -98,7 +100,8 @@ ulong hourglass::getNumSteps() {
 ulong hourglass::getCurrentStep() {
     return _timeRemaining / _timeStep + 1;
 }
-// Operator overloads
+
+// ------------------- Operator overloads -------------------
 
 hourglass::operator std::string() const {
     std::string retString = "Time Remaining: " + std::to_string(_timeRemaining) + "ms\n" +
