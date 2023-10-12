@@ -42,19 +42,18 @@ void loop() {
 
         hg.update();
 
+        switch (currentState) {
+            case INIT:
+                if (!hg.isPaused()) hg.pause();
+                if (hg.getTimeRemaining() < hg.getTotalTime()) hg.reset();
+                if (sGo.fell()) currentState = COUNTING;
+            case COUNTING:
+                if (hg.isPaused()) hg.resume();
+                
+            default:
 
-        switch (state)
-        {
-        case /* constant-expression */:
-            /* code */
-            break;
-        
-        default:
-            break;
+                break;
         }
-
-
-
 
         if (hg.isFinished()) {
             if (Serial) Serial.println("Finished!");
