@@ -21,13 +21,9 @@ hourglass::hourglass(ulong numSteps, ulong timeStepMS) {
     _elapsedMillisTimer = _totalTime - _timeRemaining;
 }
 
-void hourglass::pause() {
-    _isPaused = true;
-}
+void hourglass::pause() { _isPaused = true; }
 
-void hourglass::resume() {
-    _isPaused = false;
-}
+void hourglass::resume() { _isPaused = false; }
 
 void hourglass::reset() {
     _elapsedMillisTimer = 0;
@@ -36,19 +32,17 @@ void hourglass::reset() {
 
 void hourglass::update() {
     if (!_isPaused) {
-        _timeRemaining = _totalTime < _elapsedMillisTimer ? 0 : _totalTime - _elapsedMillisTimer;
+        _timeRemaining = _totalTime < _elapsedMillisTimer
+                             ? 0
+                             : _totalTime - _elapsedMillisTimer;
     } else {
         _elapsedMillisTimer = _timeRemaining;
     }
 }
 
-bool hourglass::isPaused() {
-    return _isPaused;
-}
+bool hourglass::isPaused() { return _isPaused; }
 
-bool hourglass::isFinished() {
-    return _timeRemaining == 0;
-}
+bool hourglass::isFinished() { return _timeRemaining == 0; }
 
 void hourglass::addTime(int timeToAdd) {
     if (timeToAdd < 0) {
@@ -56,18 +50,15 @@ void hourglass::addTime(int timeToAdd) {
     }
 
     ulong newRemainingTime = timeToAdd + _timeRemaining;
-    _timeRemaining = newRemainingTime > _totalTime ? _totalTime : newRemainingTime;
+    _timeRemaining =
+        newRemainingTime > _totalTime ? _totalTime : newRemainingTime;
 }
 
 // ------------------- Getters and setters -------------------
 
-ulong hourglass::getTimeRemaining() {
-    return _timeRemaining;
-}
+ulong hourglass::getTimeRemaining() { return _timeRemaining; }
 
-ulong hourglass::getTotalTime() {
-    return _totalTime;
-}
+ulong hourglass::getTotalTime() { return _totalTime; }
 
 void hourglass::setTimeStep(int newTimeStep) {
     if (newTimeStep < 1) {
@@ -79,9 +70,7 @@ void hourglass::setTimeStep(int newTimeStep) {
     _timeRemaining = _totalTime - _elapsedMillisTimer;
 }
 
-ulong hourglass::getTimeStep() {
-    return _timeStep;
-}
+ulong hourglass::getTimeStep() { return _timeStep; }
 
 ulong hourglass::setNumSteps(ulong newNumSteps) {
     if (newNumSteps < 1) {
@@ -93,23 +82,20 @@ ulong hourglass::setNumSteps(ulong newNumSteps) {
     _timeRemaining = _totalTime - _elapsedMillisTimer;
 }
 
-ulong hourglass::getNumSteps() {
-    return _numSteps;
-}
+ulong hourglass::getNumSteps() { return _numSteps; }
 
-ulong hourglass::getCurrentStep() {
-    return _timeRemaining / _timeStep + 1;
-}
+ulong hourglass::getCurrentStep() { return _timeRemaining / _timeStep + 1; }
 
 // ------------------- Operator overloads -------------------
 
 hourglass::operator std::string() const {
-    std::string retString = "Time Remaining: " + std::to_string(_timeRemaining) + "ms\n" +
-                            "\t " + std::to_string(_timeRemaining / 1000) + "s\n" +
-                            "Total Time: " + std::to_string(_totalTime) + "\n" +
-                            "Time Step: " + std::to_string(_timeStep) + "\n" +
-                            "Current Step: " + std::to_string(_timeRemaining / _timeStep + 1) +
-                            " / " + std::to_string(_numSteps) + "\n";
+    std::string retString =
+        "Time Remaining: " + std::to_string(_timeRemaining) + "ms\n" + "\t " +
+        std::to_string(_timeRemaining / 1000) + "s\n" +
+        "Total Time: " + std::to_string(_totalTime) + "\n" +
+        "Time Step: " + std::to_string(_timeStep) + "\n" +
+        "Current Step: " + std::to_string(_timeRemaining / _timeStep + 1) +
+        " / " + std::to_string(_numSteps) + "\n";
 
     return retString;
 }
