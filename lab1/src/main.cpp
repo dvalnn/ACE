@@ -7,7 +7,7 @@
 #define SEGMENTS 5
 #define SEGMENT_TIME 2000
 
-// todo: VERIFY PIN NUMBERS ARE CORRECT
+// TODO: VERIFY PIN NUMBERS ARE CORRECT
 #define S_UP 2
 #define S_DOWN 3
 #define S_GO 4
