@@ -9,10 +9,11 @@
 class LedHourglass : public Hourglass {
    public:
     LedHourglass(ulong numSteps, ulong timeStepMs, int ledCount);
+    ~LedHourglass();
     void update();
 
-    private:
-    std::vector<Led> ledStrip;
+   private:
+    std::vector<Led> ledVec;
 };
 
 #endif

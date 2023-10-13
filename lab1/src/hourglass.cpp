@@ -72,7 +72,7 @@ void Hourglass::setTimeStep(int newTimeStep) {
 
 ulong Hourglass::getTimeStep() { return _timeStep; }
 
-ulong Hourglass::setNumSteps(ulong newNumSteps) {
+void Hourglass::setNumSteps(ulong newNumSteps) {
     if (newNumSteps < 1) {
         newNumSteps = 1;
     }
@@ -84,6 +84,11 @@ ulong Hourglass::setNumSteps(ulong newNumSteps) {
 
 ulong Hourglass::getNumSteps() { return _numSteps; }
 
+/**
+ * @brief return the current time step, [1 ... maxStep]
+ *
+ * @return ulong
+ */
 ulong Hourglass::getCurrentStep() { return _timeRemaining / _timeStep + 1; }
 
 // ------------------- Operator overloads -------------------
@@ -111,21 +116,21 @@ Hourglass& Hourglass::operator=(const Hourglass& other) {
     return *this;
 }
 
-Hourglass& Hourglass::operator=(const ulong& val) {
-    _timeRemaining = val;
-    _timeRemaining = _timeRemaining > _totalTime ? _totalTime : _timeRemaining;
-    _timeRemaining = _timeRemaining < 0 ? 0 : _timeRemaining;
-    return *this;
-}
+// Hourglass& Hourglass::operator=(const ulong& val) {
+//     _timeRemaining = val;
+//     _timeRemaining = _timeRemaining > _totalTime ? _totalTime :
+//     _timeRemaining; _timeRemaining = _timeRemaining < 0 ? 0 : _timeRemaining;
+//     return *this;
+// }
 
-Hourglass& Hourglass::operator+=(const ulong& val) {
-    _timeRemaining += val;
-    _timeRemaining = _timeRemaining > _totalTime ? _totalTime : _timeRemaining;
-    return *this;
-}
+// Hourglass& Hourglass::operator+=(const ulong& val) {
+//     _timeRemaining += val;
+//     _timeRemaining = _timeRemaining > _totalTime ? _totalTime :
+//     _timeRemaining; return *this;
+// }
 
-Hourglass& Hourglass::operator-=(const ulong& val) {
-    _timeRemaining -= val;
-    _timeRemaining = _timeRemaining < 0 ? 0 : _timeRemaining;
-    return *this;
-}
+// Hourglass& Hourglass::operator-=(const ulong& val) {
+//     _timeRemaining -= val;
+//     _timeRemaining = _timeRemaining < 0 ? 0 : _timeRemaining;
+//     return *this;
+// }

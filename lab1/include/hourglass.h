@@ -26,7 +26,7 @@ class Hourglass {
     ulong getTimeStep();
 
     ulong getNumSteps();
-    ulong setNumSteps(ulong newNumSteps);
+    void setNumSteps(ulong newNumSteps);
 
     ulong getCurrentStep();
 
@@ -36,9 +36,9 @@ class Hourglass {
     // Operator overloads
     operator std::string() const;
     Hourglass& operator=(const Hourglass& other);
-    Hourglass& operator=(const ulong& val);
-    Hourglass& operator+=(const ulong& val);
-    Hourglass& operator-=(const ulong& val);
+    // Hourglass& operator=(const ulong& val);
+    // Hourglass& operator+=(const ulong& val);
+    // Hourglass& operator-=(const ulong& val);
 
    private:
     ulong _numSteps;

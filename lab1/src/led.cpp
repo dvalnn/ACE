@@ -1,5 +1,20 @@
 #include "led.h"
 
+Led::Led() {
+    float dutyCycle = .5;
+    unsigned long period = 200;
+    uint8_t savedColor[3] = {0, 0, 0};
+
+    this->dutyCycle = dutyCycle;
+    this->period = period;
+
+    this->savedColor[0] = savedColor[0];
+    this->savedColor[1] = savedColor[1];
+    this->savedColor[2] = savedColor[2];
+
+    this->active = true;
+}
+
 Led::Led(float dutyCycle, unsigned long period, int r, int g, int b) {
     this->dutyCycle = dutyCycle;
     this->period = period;
@@ -7,6 +22,8 @@ Led::Led(float dutyCycle, unsigned long period, int r, int g, int b) {
     this->savedColor[0] = r;
     this->savedColor[1] = g;
     this->savedColor[2] = b;
+
+    this->active = true;
 }
 
 void Led::update() {
@@ -14,18 +31,15 @@ void Led::update() {
         time = 0;
     }
 
-    //* LED is turned ON
-    if (time < period * dutyCycle) {
-        this->displayColor[0] = this->savedColor[0];
-        this->displayColor[1] = this->savedColor[1];
-        this->displayColor[2] = this->savedColor[2];
-        return;
-    }
-
-    //* LED is turned OFF
     this->displayColor[0] = 0;
     this->displayColor[1] = 0;
     this->displayColor[2] = 0;
+
+    if (active and (time < period * dutyCycle)) {
+        this->displayColor[0] = this->savedColor[0];
+        this->displayColor[1] = this->savedColor[1];
+        this->displayColor[2] = this->savedColor[2];
+    }
 }
 
 // getters and setters
@@ -52,3 +66,7 @@ void Led::setColorSettings(int r, int g, int b) {
     this->savedColor[1] = (uint8_t)(g & 0xFF);
     this->savedColor[2] = (uint8_t)(b & 0xFF);
 }
+
+bool Led::isActive() { return this->active; }
+
+void Led::setActive(bool state) { this->active = state; }

@@ -7,12 +7,15 @@ class Led {
    private:
     float dutyCycle;
     unsigned long period;
-    uint8_t displayColor[3] = {0, 0, 0};
-    uint8_t savedColor[3] = {0, 0, 0};
+    uint8_t displayColor[3];
+    uint8_t savedColor[3];
+
+    bool active;
 
     elapsedMillis time;
 
    public:
+    Led();
     Led(float dutyCycle, unsigned long period, int r, int g, int b);
 
     float getDutyCycle();
@@ -23,6 +26,9 @@ class Led {
     void setDutyCycle(float dutyCycle);
     void setPeriod(unsigned long period);
     void setColorSettings(int r, int g, int b);
+
+    bool isActive();
+    void setActive(bool state);
 
     void update();
 };
