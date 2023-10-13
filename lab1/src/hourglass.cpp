@@ -6,7 +6,7 @@
  * @param numSteps number of time steps - defaults to 5
  * @param timeStepMS time in millisseconds per step - defaults to 2000
  */
-hourglass::hourglass(ulong numSteps, ulong timeStepMS) {
+Hourglass::Hourglass(ulong numSteps, ulong timeStepMS) {
     if (numSteps < 1 || timeStepMS < 1) {
         numSteps = 5;
         timeStepMS = 2000;
@@ -21,16 +21,16 @@ hourglass::hourglass(ulong numSteps, ulong timeStepMS) {
     _elapsedMillisTimer = _totalTime - _timeRemaining;
 }
 
-void hourglass::pause() { _isPaused = true; }
+void Hourglass::pause() { _isPaused = true; }
 
-void hourglass::resume() { _isPaused = false; }
+void Hourglass::resume() { _isPaused = false; }
 
-void hourglass::reset() {
+void Hourglass::reset() {
     _elapsedMillisTimer = 0;
     _timeRemaining = _totalTime;
 }
 
-void hourglass::update() {
+void Hourglass::update() {
     if (!_isPaused) {
         _timeRemaining = _totalTime < _elapsedMillisTimer
                              ? 0
@@ -40,11 +40,11 @@ void hourglass::update() {
     }
 }
 
-bool hourglass::isPaused() { return _isPaused; }
+bool Hourglass::isPaused() { return _isPaused; }
 
-bool hourglass::isFinished() { return _timeRemaining == 0; }
+bool Hourglass::isFinished() { return _timeRemaining == 0; }
 
-void hourglass::addTime(int timeToAdd) {
+void Hourglass::addTime(int timeToAdd) {
     if (timeToAdd < 0) {
         timeToAdd = 0;
     }
@@ -56,11 +56,11 @@ void hourglass::addTime(int timeToAdd) {
 
 // ------------------- Getters and setters -------------------
 
-ulong hourglass::getTimeRemaining() { return _timeRemaining; }
+ulong Hourglass::getTimeRemaining() { return _timeRemaining; }
 
-ulong hourglass::getTotalTime() { return _totalTime; }
+ulong Hourglass::getTotalTime() { return _totalTime; }
 
-void hourglass::setTimeStep(int newTimeStep) {
+void Hourglass::setTimeStep(int newTimeStep) {
     if (newTimeStep < 1) {
         newTimeStep = 1;
     }
@@ -70,9 +70,9 @@ void hourglass::setTimeStep(int newTimeStep) {
     _timeRemaining = _totalTime - _elapsedMillisTimer;
 }
 
-ulong hourglass::getTimeStep() { return _timeStep; }
+ulong Hourglass::getTimeStep() { return _timeStep; }
 
-ulong hourglass::setNumSteps(ulong newNumSteps) {
+ulong Hourglass::setNumSteps(ulong newNumSteps) {
     if (newNumSteps < 1) {
         newNumSteps = 1;
     }
@@ -82,13 +82,13 @@ ulong hourglass::setNumSteps(ulong newNumSteps) {
     _timeRemaining = _totalTime - _elapsedMillisTimer;
 }
 
-ulong hourglass::getNumSteps() { return _numSteps; }
+ulong Hourglass::getNumSteps() { return _numSteps; }
 
-ulong hourglass::getCurrentStep() { return _timeRemaining / _timeStep + 1; }
+ulong Hourglass::getCurrentStep() { return _timeRemaining / _timeStep + 1; }
 
 // ------------------- Operator overloads -------------------
 
-hourglass::operator std::string() const {
+Hourglass::operator std::string() const {
     std::string retString =
         "Time Remaining: " + std::to_string(_timeRemaining) + "ms\n" + "\t " +
         std::to_string(_timeRemaining / 1000) + "s\n" +
@@ -100,7 +100,7 @@ hourglass::operator std::string() const {
     return retString;
 }
 
-hourglass& hourglass::operator=(const hourglass& other) {
+Hourglass& Hourglass::operator=(const Hourglass& other) {
     _numSteps = other._numSteps;
     _timeStep = other._timeStep;
     _totalTime = other._totalTime;
@@ -111,20 +111,20 @@ hourglass& hourglass::operator=(const hourglass& other) {
     return *this;
 }
 
-hourglass& hourglass::operator=(const ulong& val) {
+Hourglass& Hourglass::operator=(const ulong& val) {
     _timeRemaining = val;
     _timeRemaining = _timeRemaining > _totalTime ? _totalTime : _timeRemaining;
     _timeRemaining = _timeRemaining < 0 ? 0 : _timeRemaining;
     return *this;
 }
 
-hourglass& hourglass::operator+=(const ulong& val) {
+Hourglass& Hourglass::operator+=(const ulong& val) {
     _timeRemaining += val;
     _timeRemaining = _timeRemaining > _totalTime ? _totalTime : _timeRemaining;
     return *this;
 }
 
-hourglass& hourglass::operator-=(const ulong& val) {
+Hourglass& Hourglass::operator-=(const ulong& val) {
     _timeRemaining -= val;
     _timeRemaining = _timeRemaining < 0 ? 0 : _timeRemaining;
     return *this;

@@ -1,17 +1,17 @@
 #ifndef _HOURGLASS_H_
 #define _HOURGLASS_H_
 
-#include "elapsedMillis.h"
+#include <elapsedMillis.h>
 
 typedef unsigned long ulong;
 
 /**
- * @brief hourglass-like timing class
+ * @brief Hourglass-like timing class
  *
  */
-class hourglass {
+class Hourglass {
    public:
-    hourglass(ulong numSteps, ulong timeStepMS);
+    Hourglass(ulong numSteps, ulong timeStepMS);
 
     void reset();
     void pause();
@@ -27,7 +27,7 @@ class hourglass {
 
     ulong getNumSteps();
     ulong setNumSteps(ulong newNumSteps);
-    
+
     ulong getCurrentStep();
 
     ulong getTotalTime();
@@ -35,10 +35,10 @@ class hourglass {
 
     // Operator overloads
     operator std::string() const;
-    hourglass& operator=(const hourglass& other);
-    hourglass& operator=(const ulong& val);
-    hourglass& operator+=(const ulong& val);
-    hourglass& operator-=(const ulong& val);
+    Hourglass& operator=(const Hourglass& other);
+    Hourglass& operator=(const ulong& val);
+    Hourglass& operator+=(const ulong& val);
+    Hourglass& operator-=(const ulong& val);
 
    private:
     ulong _numSteps;

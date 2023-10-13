@@ -2,12 +2,11 @@
 #include <Bounce2.h>
 #include <Serial.h>
 
-#include "hourglass.h"
+#include "ledHourglass.h"
 
 #define SEGMENTS 5
 #define SEGMENT_TIME 2000
 
-// TODO: VERIFY PIN NUMBERS ARE CORRECT
 #define S_UP 2
 #define S_DOWN 3
 #define S_GO 4
@@ -27,6 +26,12 @@ typedef enum state {
 } state;
 
 typedef enum configMode { TIME_STEP, EFFECT, COLOR, NONE } configMode;
+
+typedef enum effect {
+    MODE1,
+    MODE2,
+    MODE3,
+} effect;
 
 state currentState = INIT;
 state statePreConfig = INIT;
@@ -55,9 +60,14 @@ const int COLOR_OPTIONS[] = {
 // TODO: add effect options
 #define NUM_EFFECT_OPTIONS 3
 volatile int selectedEffect = 0;
+const int EFFECT_OPTIONS[] = {
+    MODE1,  // switch of at the end of the interval
+    MODE2,  // when at the second half of the interval, blink
+    MODE3,  // fade from 100% to 0%
+};
 
 //* 5 segments, 2 seconds per segment
-hourglass hg(SEGMENT_TIME, SEGMENTS);
+LedHourglass hg(SEGMENT_TIME, SEGMENTS, 5);
 
 void hgStateMachine() {
     // TODO: add missing serial print information
