@@ -89,7 +89,9 @@ ulong Hourglass::getNumSteps() { return _numSteps; }
  *
  * @return ulong
  */
-ulong Hourglass::getCurrentStep() { return _timeRemaining / _timeStep + 1; }
+ulong Hourglass::getCurrentStep() {
+    return _timeRemaining ? (_timeRemaining / _timeStep + 1) : 0;
+}
 
 // ------------------- Operator overloads -------------------
 

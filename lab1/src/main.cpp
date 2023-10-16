@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Bounce2.h>
+#include <NeoPixelConnect.h>
 #include <Serial.h>
 
 #include "ledHourglass.h"
@@ -17,6 +18,8 @@
 Bounce sGo = Bounce();
 Bounce sUp = Bounce();
 Bounce sDown = Bounce();
+
+NeoPixelConnect npStrip(CONTROL_PIN, N_LEDS);
 
 typedef enum state {
     INIT,
@@ -208,6 +211,18 @@ void hgStateMachine() {
     }
 }
 
+void updateLedStrip() {
+    uint8_t r, g, b;
+
+    for (int i = 0; i < hg.getLedCount(); i++) {
+        r = (uint8_t)((hg.getLedColor(i) >> 16) & 0xFF);
+        g = (uint8_t)((hg.getLedColor(i) >> 8) & 0xFF);
+        b = (uint8_t)((hg.getLedColor(i)) & 0xFF);
+
+        npStrip.neoPixelSetValue(i, r, g, b, true);
+    }
+}
+
 void setup() {
     Serial.begin(9600);
 
@@ -218,8 +233,6 @@ void setup() {
     sGo.interval(5);
     sUp.interval(5);
     sDown.interval(5);
-
-    hg.begin();
 }
 
 void loop() {
@@ -231,6 +244,8 @@ void loop() {
         sDown.update();
 
         hg.update();
+
+        updateLedStrip();
 
         hgStateMachine();
 

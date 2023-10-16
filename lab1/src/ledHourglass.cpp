@@ -5,8 +5,11 @@ LedHourglass::LedHourglass(ulong numSteps, ulong timeStepMS, int ledCount,
     : Hourglass(numSteps, timeStepMS) {
     for (int i = 0; i < ledCount; i++) {
         this->ledVec.push_back(*(new Led()));
+
+        // some default settings
+        this->ledVec[i].setColorSettings(0x7B, 0xB5, 0xDC);
+        this->ledVec[i].setBrightness(0.1);
     }
-    this->npStrip = Adafruit_NeoPixel(ledCount, pin, NEO_GRB + NEO_KHZ800);
 }
 
 LedHourglass::~LedHourglass() {
@@ -16,19 +19,21 @@ LedHourglass::~LedHourglass() {
     }
 }
 
-void LedHourglass::begin() {
-    this->npStrip.begin();
+void LedHourglass::setLedColor(int index, uint32_t color) {
+    uint8_t r, g, b;
+    r = (uint8_t)((color >> 16) & 0xFF);
+    g = (uint8_t)((color >> 8) & 0xFF);
+    b = (uint8_t)(color & 0xFF);
 
-    for (int i = 0; i < this->ledVec.size(); i++) {
-        this->ledVec[i].setColorSettings(0x7B, 0xB5, 0xDC);
-        this->ledVec[i].setBrightness(0.5);
-    }
+    this->ledVec[index].setColorSettings(r, g, b);
+}
+
+void LedHourglass::setLedColor(int index, uint8_t r, uint8_t g, uint8_t b) {
+    this->ledVec[index].setColorSettings(r, g, b);
 }
 
 void LedHourglass::update() {
-    Hourglass::update(); 
-    this->npStrip.clear();
-    // TODO - this->npStrip.clear() breaks / cannot exit INIT state
+    Hourglass::update();
 
     for (int i = 0; i < this->ledVec.size(); i++) {
         this->ledVec[i].update();
@@ -36,22 +41,11 @@ void LedHourglass::update() {
             if (!this->ledVec[i].isActive()) this->ledVec[i].setActive(true);
         } else if (this->ledVec[i].isActive())
             this->ledVec[i].setActive(false);
-    
-        this->npStrip.setPixelColor(i, this->ledVec[i].getActiveColor()); // parte
     }
-
-    this->npStrip.show();
 }
 
-void LedHourglass::setLedColor(int index, uint32_t color) {
-    uint8_t r, g, b;
-    r = (color >> 16) & 0xFF;
-    g = (color >> 8) & 0xFF;
-    b = color & 0xFF;
+int LedHourglass::getLedCount() { return this->ledVec.size(); }
 
-    this->ledVec[index].setColorSettings(r, g, b);
-}
-
-void LedHourglass::setLedColor(int index, uint8_t r, uint8_t g, uint8_t b) {
-    this->ledVec[index].setColorSettings(r, g, b);
+uint32_t LedHourglass::getLedColor(int index) {
+    return (uint32_t)this->ledVec[index].getActiveColor();
 }

@@ -2,7 +2,6 @@
 #define _LED_HOURGLASS_H_
 
 #include <vector>
-#include <Adafruit_NeoPixel.h>
 
 #include "hourglass.h"
 #include "led.h"
@@ -12,7 +11,6 @@ class LedHourglass : public Hourglass {
     LedHourglass(ulong numSteps, ulong timeStepMs, int ledCount, int pin);
     ~LedHourglass();
 
-    void begin();
     void update();
     
     void setLedColor(int index, uint32_t color);
@@ -29,7 +27,6 @@ class LedHourglass : public Hourglass {
     
    private:
     std::vector<Led> ledVec;
-    Adafruit_NeoPixel npStrip;
 };
 
 #endif
