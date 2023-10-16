@@ -23,15 +23,10 @@ typedef enum state {
     FINISHED,
     ENTER_CONFIG,
     CONFIG,
+    EXIT_CONFIG,
 } state;
 
 typedef enum configMode { TIME_STEP, EFFECT, COLOR, NONE } configMode;
-
-typedef enum effect {
-    MODE1,
-    MODE2,
-    MODE3,
-} effect;
 
 state currentState = INIT;
 state statePreConfig = INIT;
@@ -57,17 +52,29 @@ const int COLOR_OPTIONS[] = {
     0xFFFFFF,  // white
 };
 
+// color string
+const char* COLOR_STRINGS[] = {
+    "purple", "blue", "cyan", "green", "yellow", "white",
+};
+
 // TODO: add effect options
 #define NUM_EFFECT_OPTIONS 3
 volatile int selectedEffect = 0;
+typedef enum effect {
+    DEFAULT,
+    BLINK,
+    FADE,
+} effect;
+
 const int EFFECT_OPTIONS[] = {
-    MODE1,  // switch of at the end of the interval
-    MODE2,  // when at the second half of the interval, blink
-    MODE3,  // fade from 100% to 0%
+    DEFAULT,  // switch of at the end of the interval
+    BLINK,    // when at the second half of the interval, blink
+    FADE,     // fade from 100% to 0%
+
 };
 
 //* 5 segments, 2 seconds per segment
-LedHourglass hg(SEGMENT_TIME, SEGMENTS, 5);
+LedHourglass hg(SEGMENTS, SEGMENT_TIME, 5);
 
 void hgStateMachine() {
     // TODO: add missing serial print information
@@ -131,13 +138,22 @@ void hgStateMachine() {
         case CONFIG:
             if (Serial) Serial.println("CONFIG");
             if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
-                currentState = statePreConfig;
+                currentState = EXIT_CONFIG;
                 confMode = NONE;
                 break;
             }
             // Simple hack to make rotate through config modes
             // This works because the enum values are 0-3
             if (sUp.rose()) confMode = (configMode)((((int)confMode) + 1) % 4);
+            break;
+
+        case EXIT_CONFIG:
+            if (Serial) Serial.println("EXIT_CONFIG");
+            if (!hg.isPaused()) hg.pause();
+            if (sUp.rose()) {
+                currentState = statePreConfig;
+                break;
+            }
             break;
 
         case FINISHED:
@@ -163,24 +179,25 @@ void hgStateMachine() {
 
         case TIME_STEP:
             if (Serial) Serial.println("TIME_STEP CONFIG");
-            if (sUp.rose()) {
+            if (sDown.rose()) {
                 selectedTimeStep =
                     (selectedTimeStep + 1) % NUM_TIME_STEP_OPTIONS;
                 hg.setTimeStep(TIME_STEP_OPTIONS[selectedTimeStep]);
             }
             break;
 
-        case COLOR:
-            if (Serial) Serial.println("COLOR CONFIG");
-            if (sUp.rose())
-                selectedColor = (selectedColor + 1) % NUM_COLOR_OPTIONS;
-            // TODO: add color change
-            break;
-
         case EFFECT:
             if (Serial) Serial.println("EFFECT CONFIG");
-            if (sUp.rose())
+            if (sDown.rose())
                 selectedEffect = (selectedEffect + 1) % NUM_EFFECT_OPTIONS;
+            Serial.print("Selected effect: ");
+            Serial.println(EFFECT_OPTIONS[selectedEffect]);
+            break;
+
+        case COLOR:
+            if (Serial) Serial.println("COLOR CONFIG");
+            if (sDown.rose())
+                selectedColor = (selectedColor + 1) % NUM_COLOR_OPTIONS;
             // TODO: add color change
             break;
 
@@ -191,15 +208,17 @@ void hgStateMachine() {
 }
 
 void setup() {
+    Serial.begin(9600);
     sGo.attach(S_GO, INPUT_PULLUP);
     sUp.attach(S_UP, INPUT_PULLUP);
     sDown.attach(S_DOWN, INPUT_PULLUP);
-    Serial.begin(9600);
 }
 
 void loop() {
     for (;;) {
         // TODO: switch to LED Hourglass child class
+        // Serial.println("Hallo, guten Morgen!");
+
         hg.update();
 
         sGo.update();

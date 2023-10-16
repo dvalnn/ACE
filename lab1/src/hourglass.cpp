@@ -36,7 +36,7 @@ void Hourglass::update() {
                              ? 0
                              : _totalTime - _elapsedMillisTimer;
     } else {
-        _elapsedMillisTimer = _timeRemaining;
+        _elapsedMillisTimer = _totalTime - _timeRemaining;
     }
 }
 
@@ -98,9 +98,9 @@ Hourglass::operator std::string() const {
         "Time Remaining: " + std::to_string(_timeRemaining) + "ms\n" + "\t " +
         std::to_string(_timeRemaining / 1000) + "s\n" +
         "Total Time: " + std::to_string(_totalTime) + "\n" +
-        "Time Step: " + std::to_string(_timeStep) + "\n" +
-        "Current Step: " + std::to_string(_timeRemaining / _timeStep + 1) +
-        " / " + std::to_string(_numSteps) + "\n";
+        "Time Step: " + std::to_string(_timeStep) + "\n" + "Current Step: " +
+        std::to_string((int)std::ceil(_timeRemaining / _timeStep)) + " / " +
+        std::to_string(_numSteps) + "\n";
 
     return retString;
 }

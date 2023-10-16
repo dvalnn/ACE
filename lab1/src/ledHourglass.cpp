@@ -15,9 +15,9 @@ LedHourglass::~LedHourglass() {
 }
 
 void LedHourglass::update() {
-    this->update();
+    Hourglass::update();
     for (int i = 0; i < this->ledVec.size(); i++) {
-        this->update();
+        this->ledVec[i].update();
         if ((i + 1) <= this->getCurrentStep()) {
             if (!this->ledVec[i].isActive()) this->ledVec[i].setActive(true);
         } else if (this->ledVec[i].isActive())
