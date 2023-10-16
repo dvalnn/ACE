@@ -7,9 +7,9 @@
 #define SEGMENTS 5
 #define SEGMENT_TIME 2000
 
-#define S_UP 2
-#define S_DOWN 3
-#define S_GO 4
+#define S_UP 3
+#define S_DOWN 4
+#define S_GO 2
 
 Bounce sGo = Bounce();
 Bounce sUp = Bounce();
@@ -71,10 +71,9 @@ LedHourglass hg(SEGMENT_TIME, SEGMENTS, 5);
 
 void hgStateMachine() {
     // TODO: add missing serial print information
-    if (Serial) Serial.println(std::string(hg).c_str());
-
     switch (currentState) {
         case INIT:
+            if (Serial) Serial.println("INIT");
             if (!hg.isPaused()) hg.pause();
             if (hg.getTimeRemaining() < hg.getTotalTime()) hg.reset();
             if (sGo.rose()) currentState = COUNTING;
@@ -86,6 +85,7 @@ void hgStateMachine() {
             break;
 
         case COUNTING:
+            if (Serial) Serial.println("COUNTING");
             if (hg.isPaused()) hg.resume();
             if (sGo.rose()) hg.reset();
             if (sUp.rose()) {
@@ -106,6 +106,7 @@ void hgStateMachine() {
             break;
 
         case PAUSED:
+            if (Serial) Serial.println("PAUSED");
             if (!hg.isPaused()) hg.pause();
             if (sGo.rose()) hg.reset();
             if (sDown.rose()) currentState = COUNTING;
@@ -118,6 +119,7 @@ void hgStateMachine() {
 
         //* buffer state to ensure the button is released before entering
         case ENTER_CONFIG:
+            if (Serial) Serial.println("ENTER_CONFIG");
             if (!hg.isPaused()) hg.pause();
             if (sUp.rose()) {
                 confMode = TIME_STEP;
@@ -127,6 +129,7 @@ void hgStateMachine() {
             break;
 
         case CONFIG:
+            if (Serial) Serial.println("CONFIG");
             if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
                 currentState = statePreConfig;
                 confMode = NONE;
@@ -138,6 +141,7 @@ void hgStateMachine() {
             break;
 
         case FINISHED:
+            if (Serial) Serial.println("FINISHED");
             if (!hg.isPaused()) hg.pause();
             if (sGo.rose()) hg.reset();
             if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
@@ -158,6 +162,7 @@ void hgStateMachine() {
             break;
 
         case TIME_STEP:
+            if (Serial) Serial.println("TIME_STEP CONFIG");
             if (sUp.rose()) {
                 selectedTimeStep =
                     (selectedTimeStep + 1) % NUM_TIME_STEP_OPTIONS;
@@ -166,12 +171,14 @@ void hgStateMachine() {
             break;
 
         case COLOR:
+            if (Serial) Serial.println("COLOR CONFIG");
             if (sUp.rose())
                 selectedColor = (selectedColor + 1) % NUM_COLOR_OPTIONS;
             // TODO: add color change
             break;
 
         case EFFECT:
+            if (Serial) Serial.println("EFFECT CONFIG");
             if (sUp.rose())
                 selectedEffect = (selectedEffect + 1) % NUM_EFFECT_OPTIONS;
             // TODO: add color change
