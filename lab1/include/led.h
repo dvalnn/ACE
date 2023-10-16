@@ -9,7 +9,8 @@ class Led {
     unsigned long period;
     uint8_t displayColor[3];
     uint8_t savedColor[3];
-
+    
+    float brightness;
     bool active;
 
     elapsedMillis time;
@@ -22,10 +23,12 @@ class Led {
     unsigned long getPeriod();
     int getActiveColor();
     int getColorSettings();
+    float getBrightness();
 
     void setDutyCycle(float dutyCycle);
     void setPeriod(unsigned long period);
     void setColorSettings(int r, int g, int b);
+    void setBrightness(float brightness);
 
     bool isActive();
     void setActive(bool state);

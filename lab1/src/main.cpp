@@ -4,8 +4,11 @@
 
 #include "ledHourglass.h"
 
-#define SEGMENTS 5
+#define N_SEGMENTS 5
 #define SEGMENT_TIME 2000
+
+#define N_LEDS 5
+#define CONTROL_PIN 6
 
 #define S_UP 3
 #define S_DOWN 4
@@ -74,7 +77,7 @@ const int EFFECT_OPTIONS[] = {
 };
 
 //* 5 segments, 2 seconds per segment
-LedHourglass hg(SEGMENTS, SEGMENT_TIME, 5);
+LedHourglass hg(N_SEGMENTS, SEGMENT_TIME, N_LEDS, CONTROL_PIN);
 
 void hgStateMachine() {
     // TODO: add missing serial print information
@@ -190,8 +193,6 @@ void hgStateMachine() {
             if (Serial) Serial.println("EFFECT CONFIG");
             if (sDown.rose())
                 selectedEffect = (selectedEffect + 1) % NUM_EFFECT_OPTIONS;
-            Serial.print("Selected effect: ");
-            Serial.println(EFFECT_OPTIONS[selectedEffect]);
             break;
 
         case COLOR:
@@ -209,23 +210,30 @@ void hgStateMachine() {
 
 void setup() {
     Serial.begin(9600);
+
     sGo.attach(S_GO, INPUT_PULLUP);
     sUp.attach(S_UP, INPUT_PULLUP);
     sDown.attach(S_DOWN, INPUT_PULLUP);
+
+    sGo.interval(5);
+    sUp.interval(5);
+    sDown.interval(5);
+
+    hg.begin();
 }
 
 void loop() {
     for (;;) {
         // TODO: switch to LED Hourglass child class
         // Serial.println("Hallo, guten Morgen!");
-
-        hg.update();
-
         sGo.update();
         sUp.update();
         sDown.update();
 
+        hg.update();
+
         hgStateMachine();
-        delay(100);
+
+        delay(10);
     }
 }

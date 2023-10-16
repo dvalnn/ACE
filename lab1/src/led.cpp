@@ -27,8 +27,8 @@ Led::Led(float dutyCycle, unsigned long period, int r, int g, int b) {
 }
 
 void Led::update() {
-    if (time > period) {
-        time = 0;
+    if (this->time > period) {
+        this->time = 0;
     }
 
     this->displayColor[0] = 0;
@@ -36,9 +36,9 @@ void Led::update() {
     this->displayColor[2] = 0;
 
     if (active and (time < period * dutyCycle)) {
-        this->displayColor[0] = this->savedColor[0];
-        this->displayColor[1] = this->savedColor[1];
-        this->displayColor[2] = this->savedColor[2];
+        this->displayColor[0] = this->savedColor[0] * this->brightness;
+        this->displayColor[1] = this->savedColor[1] * this->brightness;
+        this->displayColor[2] = this->savedColor[2] * this->brightness;
     }
 }
 
@@ -57,6 +57,8 @@ int Led::getColorSettings() {
                  (this->savedColor[2]));
 }
 
+float Led::getBrightness() { return brightness; }
+
 void Led::setDutyCycle(float dutyCycle) { this->dutyCycle = dutyCycle; }
 
 void Led::setPeriod(unsigned long period) { this->period = period; }
@@ -66,6 +68,8 @@ void Led::setColorSettings(int r, int g, int b) {
     this->savedColor[1] = (uint8_t)(g & 0xFF);
     this->savedColor[2] = (uint8_t)(b & 0xFF);
 }
+
+void Led::setBrightness(float brightness) { this->brightness = brightness; }
 
 bool Led::isActive() { return this->active; }
 
