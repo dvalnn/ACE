@@ -82,6 +82,8 @@ typedef enum effect {
 LedHourglass hg(N_SEGMENTS, SEGMENT_TIME, N_LEDS, CONTROL_PIN);
 
 void hgStateMachine() {
+    Serial.println(std::string(hg).c_str());
+
     // TODO: add missing serial print information
     switch (currentState) {
         case INIT:
@@ -101,11 +103,14 @@ void hgStateMachine() {
             if (hg.isPaused()) hg.resume();
             if (sGo.rose()) hg.reset();
             if (sUp.rose()) {
-                // calculate time remaining in current step
-                int rTime = hg.getTimeRemaining() -
-                            hg.getCurrentStep() * hg.getTimeStep();
-                // increment a full time step + time remaining in current
-                // step
+                uint32_t rTime = hg.getTimeRemaining();
+                if (rTime > hg.getTimeStep())
+                    rTime = hg.getTimeRemaining() -
+                            (hg.getCurrentStep() - 1) * hg.getTimeStep();
+                else
+                    rTime = hg.getTimeStep() - hg.getTimeRemaining();
+                // increment a full time step 
+                // + time remaining in current step
                 hg.addTime(hg.getTimeStep() + rTime);
             }
             if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
@@ -187,7 +192,7 @@ void hgStateMachine() {
             if (sDown.rose()) {
                 selectedTimeStep =
                     (selectedTimeStep + 1) % NUM_TIME_STEP_OPTIONS;
-                hg.setTimeStep(TIME_STEP_OPTIONS[selectedTimeStep]);
+                // hg.setTimeStep(TIME_STEP_OPTIONS[selectedTimeStep]);
             }
             break;
 
@@ -195,7 +200,7 @@ void hgStateMachine() {
             if (Serial) Serial.println("EFFECT CONFIG");
             if (sDown.rose())
                 selectedEffect = (selectedEffect + 1) % NUM_EFFECT_OPTIONS;
-            hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
+            // hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
             break;
 
         case COLOR:
@@ -297,7 +302,7 @@ void loop() {
 
         hgStateMachine();
 
-        applyEffects();
+        // applyEffects();
 
         delay(10);
     }

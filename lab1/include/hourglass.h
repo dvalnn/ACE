@@ -2,8 +2,7 @@
 #define _HOURGLASS_H_
 
 #include <elapsedMillis.h>
-
-typedef unsigned long ulong;
+#include <inttypes.h>
 
 /**
  * @brief Hourglass-like timing class
@@ -11,7 +10,7 @@ typedef unsigned long ulong;
  */
 class Hourglass {
    public:
-    Hourglass(ulong numSteps, ulong timeStepMS);
+    Hourglass(uint32_t numSteps, uint32_t timeStepMS);
 
     void reset();
     void pause();
@@ -19,34 +18,34 @@ class Hourglass {
     void update();
     bool isPaused();
     bool isFinished();
-    void addTime(int timeToAdd);
+    void addTime(uint32_t timeToAdd);
 
     // Getters and setters
     void setTimeStep(int newTimeStep);
-    ulong getTimeStep();
+    uint32_t getTimeStep();
 
-    ulong getNumSteps();
-    void setNumSteps(ulong newNumSteps);
+    uint32_t getNumSteps();
+    void setNumSteps(uint32_t newNumSteps);
 
-    ulong getCurrentStep();
+    uint32_t getCurrentStep();
 
-    ulong getTotalTime();
-    ulong getTimeRemaining();
+    uint32_t getTotalTime();
+    uint32_t getTimeRemaining();
 
     // Operator overloads
     operator std::string() const;
     Hourglass& operator=(const Hourglass& other);
-    // Hourglass& operator=(const ulong& val);
-    // Hourglass& operator+=(const ulong& val);
-    // Hourglass& operator-=(const ulong& val);
+    // Hourglass& operator=(const uint32_t& val);
+    // Hourglass& operator+=(const uint32_t& val);
+    // Hourglass& operator-=(const uint32_t& val);
 
    private:
-    ulong _numSteps;
-    ulong _timeStep;
-    ulong _totalTime;
-    ulong _timeRemaining;
-    elapsedMillis _elapsedMillisTimer;
-    bool _isPaused;
+    uint32_t numSteps;
+    uint32_t timeStep;
+    uint32_t totalTime;
+    uint32_t timeRemaining;
+    elapsedMillis elapsedMillisTimer;
+    bool paused;
 };
 
 #endif

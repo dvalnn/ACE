@@ -6,133 +6,131 @@
  * @param numSteps number of time steps - defaults to 5
  * @param timeStepMS time in millisseconds per step - defaults to 2000
  */
-Hourglass::Hourglass(ulong numSteps, ulong timeStepMS) {
+Hourglass::Hourglass(uint32_t numSteps, uint32_t timeStepMS) {
     if (numSteps < 1 || timeStepMS < 1) {
         numSteps = 5;
         timeStepMS = 2000;
     }
 
-    _numSteps = numSteps;
-    _timeStep = timeStepMS;
+    this->numSteps = numSteps;
+    this->timeStep = timeStepMS;
 
-    _isPaused = false;
-    _totalTime = _timeStep * _numSteps;
-    _timeRemaining = _totalTime;
-    _elapsedMillisTimer = _totalTime - _timeRemaining;
+    this->paused = false;
+    this->totalTime = this->timeStep * this->numSteps;
+    this->timeRemaining = this->totalTime;
+    this->elapsedMillisTimer = this->totalTime - this->timeRemaining;
 }
 
-void Hourglass::pause() { _isPaused = true; }
+void Hourglass::pause() { this->paused = true; }
 
-void Hourglass::resume() { _isPaused = false; }
+void Hourglass::resume() { this->paused = false; }
 
 void Hourglass::reset() {
-    _elapsedMillisTimer = 0;
-    _timeRemaining = _totalTime;
+    this->elapsedMillisTimer = 0;
+    this->timeRemaining = this->totalTime;
 }
 
 void Hourglass::update() {
-    if (!_isPaused) {
-        _timeRemaining = _totalTime < _elapsedMillisTimer
-                             ? 0
-                             : _totalTime - _elapsedMillisTimer;
+    if (!this->paused) {
+        this->timeRemaining = this->totalTime < this->elapsedMillisTimer
+                                  ? 0
+                                  : this->totalTime - this->elapsedMillisTimer;
     } else {
-        _elapsedMillisTimer = _totalTime - _timeRemaining;
+        this->elapsedMillisTimer = this->totalTime - this->timeRemaining;
     }
 }
 
-bool Hourglass::isPaused() { return _isPaused; }
+bool Hourglass::isPaused() { return this->paused; }
 
-bool Hourglass::isFinished() { return _timeRemaining == 0; }
+bool Hourglass::isFinished() { return this->timeRemaining == 0; }
 
-void Hourglass::addTime(int timeToAdd) {
-    if (timeToAdd < 0) {
-        timeToAdd = 0;
+void Hourglass::addTime(uint32_t timeToAdd) {
+    if(timeToAdd >= this->elapsedMillisTimer){
+        timeToAdd = this->elapsedMillisTimer;
     }
-
-    ulong newRemainingTime = timeToAdd + _timeRemaining;
-    _timeRemaining =
-        newRemainingTime > _totalTime ? _totalTime : newRemainingTime;
+    this->elapsedMillisTimer -= timeToAdd; 
 }
 
 // ------------------- Getters and setters -------------------
 
-ulong Hourglass::getTimeRemaining() { return _timeRemaining; }
+uint32_t Hourglass::getTimeRemaining() { return this->timeRemaining; }
 
-ulong Hourglass::getTotalTime() { return _totalTime; }
+uint32_t Hourglass::getTotalTime() { return this->totalTime; }
 
 void Hourglass::setTimeStep(int newTimeStep) {
     if (newTimeStep < 1) {
         newTimeStep = 1;
     }
 
-    _timeStep = newTimeStep;
-    _totalTime = _timeStep * _numSteps;
-    _timeRemaining = _totalTime - _elapsedMillisTimer;
+    this->timeStep = newTimeStep;
+    this->totalTime = this->timeStep * this->numSteps;
+    this->timeRemaining = this->totalTime - this->elapsedMillisTimer;
 }
 
-ulong Hourglass::getTimeStep() { return _timeStep; }
+uint32_t Hourglass::getTimeStep() { return this->timeStep; }
 
-void Hourglass::setNumSteps(ulong newNumSteps) {
+void Hourglass::setNumSteps(uint32_t newNumSteps) {
     if (newNumSteps < 1) {
         newNumSteps = 1;
     }
 
-    _numSteps = newNumSteps;
-    _totalTime = _timeStep * _numSteps;
-    _timeRemaining = _totalTime - _elapsedMillisTimer;
+    this->numSteps = newNumSteps;
+    this->totalTime = this->timeStep * this->numSteps;
+    this->timeRemaining = this->totalTime - this->elapsedMillisTimer;
 }
 
-ulong Hourglass::getNumSteps() { return _numSteps; }
+uint32_t Hourglass::getNumSteps() { return this->numSteps; }
 
 /**
  * @brief return the current time step, [1 ... maxStep]
  *
- * @return ulong
+ * @return uint32this->t
  */
-ulong Hourglass::getCurrentStep() {
-    return _timeRemaining ? (_timeRemaining / _timeStep + 1) : 0;
+uint32_t Hourglass::getCurrentStep() {
+    return this->timeRemaining ? (this->timeRemaining / this->timeStep + 1) : 0;
 }
 
 // ------------------- Operator overloads -------------------
 
 Hourglass::operator std::string() const {
     std::string retString =
-        "Time Remaining: " + std::to_string(_timeRemaining) + "ms\n" + "\t " +
-        std::to_string(_timeRemaining / 1000) + "s\n" +
-        "Total Time: " + std::to_string(_totalTime) + "\n" +
-        "Time Step: " + std::to_string(_timeStep) + "\n" + "Current Step: " +
-        std::to_string((int)std::ceil(_timeRemaining / _timeStep)) + " / " +
-        std::to_string(_numSteps) + "\n";
+        "Time Remaining: " + std::to_string(this->timeRemaining) + "ms\n" +
+        "\t " + std::to_string(this->timeRemaining / 1000) + "s\n" +
+        "Total Time: " + std::to_string(this->totalTime) + "\n" +
+        "Time Step: " + std::to_string(this->timeStep) + "\n" +
+        "Current Step: " +
+        std::to_string((int)std::ceil(this->timeRemaining / this->timeStep)) +
+        " / " + std::to_string(this->numSteps) + "\n";
 
     return retString;
 }
 
 Hourglass& Hourglass::operator=(const Hourglass& other) {
-    _numSteps = other._numSteps;
-    _timeStep = other._timeStep;
-    _totalTime = other._totalTime;
-    _timeRemaining = other._timeRemaining;
-    _elapsedMillisTimer = other._elapsedMillisTimer;
-    _isPaused = other._isPaused;
+    this->numSteps = other.numSteps;
+    this->timeStep = other.timeStep;
+    this->totalTime = other.totalTime;
+    this->timeRemaining = other.timeRemaining;
+    this->elapsedMillisTimer = other.elapsedMillisTimer;
+    this->paused = other.paused;
 
     return *this;
 }
 
-// Hourglass& Hourglass::operator=(const ulong& val) {
-//     _timeRemaining = val;
-//     _timeRemaining = _timeRemaining > _totalTime ? _totalTime :
-//     _timeRemaining; _timeRemaining = _timeRemaining < 0 ? 0 : _timeRemaining;
-//     return *this;
+// Hourglass& Hourglass::operator=(const uint32this->t& val) {
+//     this->timeRemaining = val;
+//     this->timeRemaining = this->timeRemaining > this->totalTime ?
+//     this->totalTime : this->timeRemaining; this->timeRemaining =
+//     this->timeRemaining < 0 ? 0 : this->timeRemaining; return *this;
 // }
 
-// Hourglass& Hourglass::operator+=(const ulong& val) {
-//     _timeRemaining += val;
-//     _timeRemaining = _timeRemaining > _totalTime ? _totalTime :
-//     _timeRemaining; return *this;
+// Hourglass& Hourglass::operator+=(const uint32this->t& val) {
+//     this->timeRemaining += val;
+//     this->timeRemaining = this->timeRemaining > this->totalTime ?
+//     this->totalTime : this->timeRemaining; return *this;
 // }
 
-// Hourglass& Hourglass::operator-=(const ulong& val) {
-//     _timeRemaining -= val;
-//     _timeRemaining = _timeRemaining < 0 ? 0 : _timeRemaining;
+// Hourglass& Hourglass::operator-=(const uint32this->t& val) {
+//     this->timeRemaining -= val;
+//     this->timeRemaining = this->timeRemaining < 0 ? 0 : this->timeRemaining;
 //     return *this;
 // }
