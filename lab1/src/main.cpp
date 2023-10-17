@@ -240,6 +240,8 @@ void fadeEffect(int index) {
 }
 
 void applyEffects() {
+    if (currentState != COUNTING) return;
+
     for (int i = 0; i < hg.getLedCount(); i++) {
         switch (selectedEffect) {
             case DEFAULT:
@@ -294,6 +296,8 @@ void loop() {
         updateLedStrip();
 
         hgStateMachine();
+
+        applyEffects();
 
         delay(10);
     }
