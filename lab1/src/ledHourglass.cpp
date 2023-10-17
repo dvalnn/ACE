@@ -53,3 +53,11 @@ int LedHourglass::getLedCount() { return this->ledVec.size(); }
 uint32_t LedHourglass::getLedColor(int index) {
     return (uint32_t)this->ledVec[index].getActiveColor();
 }
+
+float LedHourglass::getLedDutyCycle(int index) {
+    return this->ledVec[index].getDutyCycle();
+}
+
+float LedHourglass::getLedBrightness(int index) {
+    return this->ledVec[index].getBrightness();
+}
