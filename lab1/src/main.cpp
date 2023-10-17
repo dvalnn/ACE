@@ -72,12 +72,11 @@ typedef enum effect {
     FADE,
 } effect;
 
-const int EFFECT_OPTIONS[] = {
-    DEFAULT,  // switch of at the end of the interval
-    BLINK,    // when at the second half of the interval, blink
-    FADE,     // fade from 100% to 0%
-
-};
+// const int EFFECT_OPTIONS[] = {
+//     DEFAULT,  // switch of at the end of the interval
+//     BLINK,    // when at the second half of the interval, blink
+//     FADE,     // fade from 100% to 0%
+// };
 
 //* 5 segments, 2 seconds per segment
 LedHourglass hg(N_SEGMENTS, SEGMENT_TIME, N_LEDS, CONTROL_PIN);
@@ -196,18 +195,67 @@ void hgStateMachine() {
             if (Serial) Serial.println("EFFECT CONFIG");
             if (sDown.rose())
                 selectedEffect = (selectedEffect + 1) % NUM_EFFECT_OPTIONS;
+            hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
             break;
 
         case COLOR:
             if (Serial) Serial.println("COLOR CONFIG");
-            if (sDown.rose())
+            if (sDown.rose()) {
                 selectedColor = (selectedColor + 1) % NUM_COLOR_OPTIONS;
-            // TODO: add color change
+            }
             break;
 
         default:
             if (Serial) Serial.println("Invalid config mode!");
             break;
+    }
+}
+
+// TODO: set magic numbers as macros
+void defaultEffect(int index) {
+    if (hg.getLedDutyCycle(index) != 1) hg.setLedDutyCycle(index, 1);
+}
+
+void blinkEffect(int index) {
+    if (hg.getLedDutyCycle(index) != 1) hg.setLedDutyCycle(index, 1);
+
+    if ((index + 1) == hg.getCurrentStep()) {
+        uint32_t timeRemainingInStep =
+            hg.getTimeRemaining() - hg.getTimeStep() * hg.getCurrentStep();
+        if (timeRemainingInStep <= 0.2 * hg.getTimeStep())
+            hg.setLedDutyCycle(index, 0.5);
+    }
+}
+
+void fadeEffect(int index) {
+    if (hg.getLedBrightness(index) != 1) hg.setLedBrightness(index, 1);
+
+    if ((index + 1) == hg.getCurrentStep()) {
+        uint32_t timeRemainingInStep =
+            hg.getTimeRemaining() - hg.getTimeStep() * hg.getCurrentStep();
+        // 1 -- timeStep
+        // x -- timeRemaining
+        hg.setLedBrightness(index, hg.getTimeStep() / timeRemainingInStep);
+    }
+}
+
+void applyEffects() {
+    for (int i = 0; i < hg.getLedCount(); i++) {
+        switch (selectedEffect) {
+            case DEFAULT:
+                defaultEffect(i);
+                break;
+
+            case BLINK:
+                blinkEffect(i);
+                break;
+            case FADE:
+                fadeEffect(i);
+                break;
+
+            default:
+                break;
+        }
     }
 }
 
@@ -237,8 +285,6 @@ void setup() {
 
 void loop() {
     for (;;) {
-        // TODO: switch to LED Hourglass child class
-        // Serial.println("Hallo, guten Morgen!");
         sGo.update();
         sUp.update();
         sDown.update();

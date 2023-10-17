@@ -32,6 +32,10 @@ void LedHourglass::setLedColor(int index, uint8_t r, uint8_t g, uint8_t b) {
     this->ledVec[index].setColorSettings(r, g, b);
 }
 
+void LedHourglass::setAllLedsColor(uint32_t color) {
+    for (int i = 0; i < this->ledVec.size(); i++) setLedColor(i, color);
+}
+
 void LedHourglass::update() {
     Hourglass::update();
 
