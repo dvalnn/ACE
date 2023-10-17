@@ -36,6 +36,14 @@ void LedHourglass::setAllLedsColor(uint32_t color) {
     for (int i = 0; i < this->ledVec.size(); i++) setLedColor(i, color);
 }
 
+void LedHourglass::setLedDutyCycle(int index, float dutyCycle) {
+    this->ledVec[index].setDutyCycle(dutyCycle);
+}
+
+void LedHourglass::setLedBrightness(int index, float brightness) {
+    this->ledVec[index].setBrightness(brightness);
+}
+
 void LedHourglass::update() {
     Hourglass::update();
 
