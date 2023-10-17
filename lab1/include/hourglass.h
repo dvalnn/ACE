@@ -21,13 +21,13 @@ class Hourglass {
     void addTime(uint32_t timeToAdd);
 
     // Getters and setters
-    void setTimeStep(int newTimeStep);
     uint32_t getTimeStep();
+    void setTimeStep(uint32_t newTimeStep);
 
-    uint32_t getNumSteps();
-    void setNumSteps(uint32_t newNumSteps);
+    int getNumSteps();
+    void setNumSteps(int newNumSteps);
 
-    uint32_t getCurrentStep();
+    int getCurrentStep();
 
     uint32_t getTotalTime();
     uint32_t getTimeRemaining();
@@ -40,12 +40,12 @@ class Hourglass {
     // Hourglass& operator-=(const uint32_t& val);
 
    private:
-    uint32_t numSteps;
-    uint32_t timeStep;
+    bool paused;
+    int timeStep;
+    int numSteps;
     uint32_t totalTime;
     uint32_t timeRemaining;
     elapsedMillis elapsedMillisTimer;
-    bool paused;
 };
 
 #endif

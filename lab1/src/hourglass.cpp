@@ -57,7 +57,7 @@ uint32_t Hourglass::getTimeRemaining() { return this->timeRemaining; }
 
 uint32_t Hourglass::getTotalTime() { return this->totalTime; }
 
-void Hourglass::setTimeStep(int newTimeStep) {
+void Hourglass::setTimeStep(uint32_t newTimeStep) {
     if (newTimeStep < 1) {
         newTimeStep = 1;
     }
@@ -69,7 +69,7 @@ void Hourglass::setTimeStep(int newTimeStep) {
 
 uint32_t Hourglass::getTimeStep() { return this->timeStep; }
 
-void Hourglass::setNumSteps(uint32_t newNumSteps) {
+void Hourglass::setNumSteps(int newNumSteps) {
     if (newNumSteps < 1) {
         newNumSteps = 1;
     }
@@ -79,14 +79,14 @@ void Hourglass::setNumSteps(uint32_t newNumSteps) {
     this->timeRemaining = this->totalTime - this->elapsedMillisTimer;
 }
 
-uint32_t Hourglass::getNumSteps() { return this->numSteps; }
+int Hourglass::getNumSteps() { return this->numSteps; }
 
 /**
  * @brief return the current time step, [1 ... maxStep]
  *
  * @return uint32this->t
  */
-uint32_t Hourglass::getCurrentStep() {
+int Hourglass::getCurrentStep() {
     return this->timeRemaining ? (this->timeRemaining / this->timeStep + 1) : 0;
 }
 

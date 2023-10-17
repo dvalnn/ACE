@@ -82,7 +82,7 @@ typedef enum effect {
 LedHourglass hg(N_SEGMENTS, SEGMENT_TIME, N_LEDS, CONTROL_PIN);
 
 void hgStateMachine() {
-    Serial.println(std::string(hg).c_str());
+    // Serial.println(std::string(hg).c_str());
 
     // TODO: add missing serial print information
     switch (currentState) {
@@ -103,15 +103,14 @@ void hgStateMachine() {
             if (hg.isPaused()) hg.resume();
             if (sGo.rose()) hg.reset();
             if (sUp.rose()) {
-                uint32_t rTime = hg.getTimeRemaining();
-                if (rTime > hg.getTimeStep())
-                    rTime = hg.getTimeRemaining() -
-                            (hg.getCurrentStep() - 1) * hg.getTimeStep();
-                else
-                    rTime = hg.getTimeStep() - hg.getTimeRemaining();
-                // increment a full time step 
-                // + time remaining in current step
-                hg.addTime(hg.getTimeStep() + rTime);
+                //! timeInc = Tstep + Tstep*CurrentStep - rTime
+                //* increment a full time step
+                //* + time remaining in current step
+                uint32_t timeInc = hg.getTimeStep() +
+                                   hg.getTimeStep() * hg.getCurrentStep() -
+                                   hg.getTimeRemaining();
+
+                hg.addTime(timeInc);
             }
             if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
                 currentState = ENTER_CONFIG;
@@ -176,6 +175,7 @@ void hgStateMachine() {
                 break;
             }
             if (hg.getTimeRemaining() > 0) currentState = COUNTING;
+            // TODO: finished counting effect
             break;
 
         default:
@@ -200,7 +200,8 @@ void hgStateMachine() {
             if (Serial) Serial.println("EFFECT CONFIG");
             if (sDown.rose())
                 selectedEffect = (selectedEffect + 1) % NUM_EFFECT_OPTIONS;
-            // hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
+            Serial.print("Selected effect: ");
+            Serial.println(selectedEffect);
             break;
 
         case COLOR:
@@ -225,22 +226,36 @@ void blinkEffect(int index) {
     if (hg.getLedDutyCycle(index) != 1) hg.setLedDutyCycle(index, 1);
 
     if ((index + 1) == hg.getCurrentStep()) {
-        uint32_t timeRemainingInStep =
-            hg.getTimeRemaining() - hg.getTimeStep() * hg.getCurrentStep();
-        if (timeRemainingInStep <= 0.2 * hg.getTimeStep())
+        uint32_t elapsedTime =
+            hg.getTimeStep() * hg.getCurrentStep() - hg.getTimeRemaining();
+
+        if (elapsedTime >= 0.5 * hg.getTimeStep())
             hg.setLedDutyCycle(index, 0.5);
     }
 }
 
 void fadeEffect(int index) {
     if (hg.getLedBrightness(index) != 1) hg.setLedBrightness(index, 1);
+    if (hg.getLedDutyCycle(index) != 1) hg.setLedDutyCycle(index, 1);
 
     if ((index + 1) == hg.getCurrentStep()) {
-        uint32_t timeRemainingInStep =
-            hg.getTimeRemaining() - hg.getTimeStep() * hg.getCurrentStep();
+        uint32_t rTimeInStep =
+            hg.getTimeStep() * hg.getCurrentStep() - hg.getTimeRemaining();
+        
         // 1 -- timeStep
-        // x -- timeRemaining
-        hg.setLedBrightness(index, hg.getTimeStep() / timeRemainingInStep);
+        // x -- rTimeInStep
+        // x =  rTimeInStep / timeStep
+
+        // since we want to fade from 100% to 0%
+        // we need to invert the brightness
+        // 1 - x = 1 - rTimeInStep / timeStep
+
+        Serial.print("ElapsedTime: ");
+        Serial.println(rTimeInStep);
+        Serial.print("New brightness: ");
+        Serial.println(1 -(float)rTimeInStep / hg.getTimeStep());
+
+        hg.setLedBrightness(index, 1 - (float)rTimeInStep / hg.getTimeStep());
     }
 }
 
@@ -256,11 +271,14 @@ void applyEffects() {
             case BLINK:
                 blinkEffect(i);
                 break;
+
             case FADE:
                 fadeEffect(i);
                 break;
 
             default:
+                if (Serial) Serial.println("Invalid effect!");
+                delay(1000);
                 break;
         }
     }
@@ -302,7 +320,7 @@ void loop() {
 
         hgStateMachine();
 
-        // applyEffects();
+        applyEffects();
 
         delay(10);
     }
