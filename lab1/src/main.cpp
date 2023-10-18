@@ -60,26 +60,224 @@ const int COLOR_OPTIONS[] = {
 
 // color string
 const char* COLOR_STRINGS[] = {
-    "purple", "blue", "cyan", "green", "yellow", "white",
+    "white", "purple", "blue", "cyan", "green", "yellow",
 };
 
-// TODO: add effect options
 #define NUM_EFFECT_OPTIONS 3
 volatile int selectedEffect = 0;
-typedef enum effect {
+typedef enum countingEffect {
     DEFAULT,
     BLINK,
     FADE,
-} effect;
-
-// const int EFFECT_OPTIONS[] = {
-//     DEFAULT,  // switch of at the end of the interval
-//     BLINK,    // when at the second half of the interval, blink
-//     FADE,     // fade from 100% to 0%
-// };
+} countingEffect;
 
 //* 5 segments, 2 seconds per segment
 LedHourglass hg(N_SEGMENTS, SEGMENT_TIME, N_LEDS, CONTROL_PIN);
+
+// TODO: set magic numbers as macros
+void defaultEffect(int index) {
+    if (hg.getLedBrightness(index) != 1) hg.setLedBrightness(index, 1);
+    if (hg.getLedDutyCycle(index) != 1) hg.setLedDutyCycle(index, 1);
+}
+
+void blinkEffect(int index) {
+    if (hg.getLedBrightness(index) != 1) hg.setLedBrightness(index, 1);
+    if (hg.getLedDutyCycle(index) != 1) hg.setLedDutyCycle(index, 1);
+
+    if ((index + 1) == hg.getCurrentStep()) {
+        uint32_t elapsedTime =
+            hg.getTimeStep() * hg.getCurrentStep() - hg.getTimeRemaining();
+
+        if (elapsedTime >= 0.5 * hg.getTimeStep())
+            hg.setLedDutyCycle(index, 0.5);
+    }
+}
+
+void fadeEffect(int index) {
+    if (hg.getLedBrightness(index) != 1) hg.setLedBrightness(index, 1);
+    if (hg.getLedDutyCycle(index) != 1) hg.setLedDutyCycle(index, 1);
+
+    if ((index + 1) == hg.getCurrentStep()) {
+        uint32_t rTimeInStep =
+            hg.getTimeStep() * hg.getCurrentStep() - hg.getTimeRemaining();
+
+        // 1 -- timeStep
+        // x -- rTimeInStep
+        // x =  rTimeInStep / timeStep
+
+        // since we want to fade from 100% to 0%
+        // we need to invert the brightness
+        // 1 - x = 1 - rTimeInStep / timeStep
+
+        Serial.print("ElapsedTime: ");
+        Serial.println(rTimeInStep);
+        Serial.print("New brightness: ");
+        Serial.println(1 - (float)rTimeInStep / hg.getTimeStep());
+
+        hg.setLedBrightness(index, 1 - (float)rTimeInStep / hg.getTimeStep());
+    }
+}
+
+void applyCountingEffect(int i) {
+    switch (selectedEffect) {
+        case DEFAULT:
+            defaultEffect(i);
+            break;
+
+        case BLINK:
+            blinkEffect(i);
+            break;
+
+        case FADE:
+            fadeEffect(i);
+            break;
+
+        default:
+            break;
+    }
+}
+
+void applyCountingEffectAllLeds() {
+    if (currentState != COUNTING) return;
+
+    for (int i = 0; i < hg.getLedCount(); i++) {
+        applyCountingEffect(i);
+    }
+}
+
+void handleConfigVFX(int led) {
+    switch (selectedEffect) {
+        case DEFAULT:
+            //* Brightness is set to 1 to remove previous settings
+            if (hg.getLedBrightness(led) != 1) hg.setLedBrightness(led, 1);
+
+            //* For this effect the Led only needs to turn off and on normally
+            //* so we will be using the duty cycle to 0.7 so that
+            //* the led is on for timeStep seconds and off for 0.3*timeStep
+            // seconds.
+            //* This is enough for the user to see the effect.
+            hg.setLedDutyCycle(led, 0.70);
+            hg.setLedPeriod(led, (uint32_t)((TIME_STEP_OPTIONS[1]) / 0.70));
+            break;
+
+        case BLINK:
+            //* Brightness is set to 1 to remove previous settings
+            if (hg.getLedBrightness(led) != 1) hg.setLedBrightness(led, 1);
+
+            //* For this effect the Led needs to blink when half the
+            //* timeStep has passed.
+
+            //* This can be achieved by manipulating the LED's duty cycle,
+            //* period, brightness and making usage of it's own built in timer.
+
+            //* The duty cycle will be set to 1 so that the led is on for
+            //* the whole timeStep.
+            hg.setLedDutyCycle(led, 1);
+
+            //* The period will be set to 2 seconds.
+            //* This is enought for the user to see the effect.
+            hg.setLedPeriod(led, TIME_STEP_OPTIONS[1]);
+
+            //* During the first half of the timeStep
+            //* we dont want the led to blink.
+            //* So we set the brightness to 1.
+            if (hg.getLedBuiltInTime(led) >= TIME_STEP_OPTIONS[1] / 2)
+                hg.setLedBrightness(led, 1);
+
+            //* During the second half of the timeStep
+            //* we want the led to blink.
+            //* To make it blink every 100ms without changing the period
+            //* we can alternate the brightness between 1 and 0.
+            else
+                hg.setLedBrightness(led,
+                                    (hg.getLedBuiltInTime(led) % 200) < 100);
+
+            break;
+
+        case FADE:
+            //* Brightness is set to 1 to remove previous settings
+            if (hg.getLedBrightness(led) != 1) hg.setLedBrightness(led, 1);
+
+            //* For this effect the Led needs to fade from 100% to 0%
+            //* Like before, we set the duty cycle to 1 so that the led is on
+
+            //* for the whole timeStep and we can manipulate the brightness
+            //* to make it fade.
+            hg.setLedDutyCycle(led, 1);
+
+            //* The period will be set to 2 seconds.
+            //* This is enought for the user to see the effect.
+            hg.setLedPeriod(led, TIME_STEP_OPTIONS[1]);
+
+            //* Now we just need to calculate the brightness for the fade effect
+            //* and set it to the led.
+
+            //* the led timer counts up from 0 -> timeStep
+            //* when the timer is 0 we want the brightness to be 100%
+            //* when the timer is timeStep we want the brightness to be 0%
+            hg.setLedBrightness(led, 1 - (float)hg.getLedBuiltInTime(led) /
+                                             TIME_STEP_OPTIONS[1]);
+            break;
+
+        default:
+            break;
+    }
+}
+
+void configEffect() {
+    for (int index = 0; index < hg.getLedCount(); index++)
+        if (hg.getLedDutyCycle(index) != 0) hg.setLedDutyCycle(index, 0);
+
+    // enable the led corresponding to the configuration mode
+    // to blink
+    hg.setLedDutyCycle(confMode, 0.5);
+    hg.setLedColor(confMode, 0xFF0000);
+
+    int displayLed = hg.getLedCount() - 1;
+
+    switch (confMode) {
+        case TIME_STEP:
+            // 0.9 ---- timeStep
+            // 1   ---- x
+            hg.setLedDutyCycle(displayLed, 0.85);
+            hg.setLedPeriod(
+                displayLed,
+                (uint32_t)((TIME_STEP_OPTIONS[selectedTimeStep]) / 0.85));
+            break;
+
+        case EFFECT:
+            handleConfigVFX(displayLed);
+            break;
+
+        case COLOR:
+            hg.setLedDutyCycle(displayLed, 1);
+            hg.setLedColor(displayLed, COLOR_OPTIONS[selectedColor]);
+            break;
+
+        default:
+            break;
+    }
+}
+
+void finishedEffect() {
+    for (int index = 0; index < hg.getLedCount(); index++) {
+        if (hg.getLedBrightness(index) != 1) hg.setLedBrightness(index, 1);
+        if (hg.getLedDutyCycle(index) != 0.5) hg.setLedDutyCycle(index, 0.5);
+        if (hg.getLedPeriod(index) != 200) hg.setLedPeriod(index, 200);
+    }
+}
+
+void updateLedStrip() {
+    uint8_t r, g, b;
+
+    for (int i = 0; i < hg.getLedCount(); i++) {
+        r = (uint8_t)((hg.getLedColor(i) >> 16) & 0xFF);
+        g = (uint8_t)((hg.getLedColor(i) >> 8) & 0xFF);
+        b = (uint8_t)((hg.getLedColor(i)) & 0xFF);
+
+        npStrip.neoPixelSetValue(i, r, g, b, true);
+    }
+}
 
 void hgStateMachine() {
     // Serial.println(std::string(hg).c_str());
@@ -99,24 +297,28 @@ void hgStateMachine() {
             break;
 
         case COUNTING:
+            applyCountingEffectAllLeds();
+
             if (Serial) Serial.println("COUNTING");
             if (hg.isPaused()) hg.resume();
             if (sGo.rose()) hg.reset();
             if (sUp.rose()) {
-                //! timeInc = Tstep + Tstep*CurrentStep - rTime
+                //! timeInc = Tstep * (1 + CurrentStep) - rTime
                 //* increment a full time step
                 //* + time remaining in current step
-                uint32_t timeInc = hg.getTimeStep() +
-                                   hg.getTimeStep() * hg.getCurrentStep() -
-                                   hg.getTimeRemaining();
+                uint32_t timeInc =
+                    hg.getTimeStep() * (1 + hg.getCurrentStep()) -
+                    hg.getTimeRemaining();
 
                 hg.addTime(timeInc);
             }
+
             if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
                 currentState = ENTER_CONFIG;
                 statePreConfig = COUNTING;
                 break;
             }
+
             if (sDown.rose()) currentState = PAUSED;
             if (hg.isFinished()) currentState = FINISHED;
             break;
@@ -135,6 +337,7 @@ void hgStateMachine() {
 
         //* buffer state to ensure the button is released before entering
         case ENTER_CONFIG:
+            configEffect();
             if (Serial) Serial.println("ENTER_CONFIG");
             if (!hg.isPaused()) hg.pause();
             if (sUp.rose()) {
@@ -145,6 +348,7 @@ void hgStateMachine() {
             break;
 
         case CONFIG:
+            configEffect();
             if (Serial) Serial.println("CONFIG");
             if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
                 currentState = EXIT_CONFIG;
@@ -153,7 +357,7 @@ void hgStateMachine() {
             }
             // Simple hack to make rotate through config modes
             // This works because the enum values are 0-3
-            if (sUp.rose()) confMode = (configMode)((((int)confMode) + 1) % 4);
+            if (sUp.rose()) confMode = (configMode)((((int)confMode) + 1) % 3);
             break;
 
         case EXIT_CONFIG:
@@ -161,21 +365,33 @@ void hgStateMachine() {
             if (!hg.isPaused()) hg.pause();
             if (sUp.rose()) {
                 currentState = statePreConfig;
+                applyCountingEffectAllLeds();
+                hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
                 break;
             }
             break;
 
         case FINISHED:
             if (Serial) Serial.println("FINISHED");
+
+            finishedEffect();
+            hg.setAllLedsColor(0xFF0000);
+
             if (!hg.isPaused()) hg.pause();
-            if (sGo.rose()) hg.reset();
+            if (hg.getTimeRemaining() < hg.getTotalTime()) hg.reset();
+
             if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
                 currentState = ENTER_CONFIG;
                 statePreConfig = FINISHED;
+                hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
                 break;
             }
-            if (hg.getTimeRemaining() > 0) currentState = COUNTING;
-            // TODO: finished counting effect
+
+            if (sGo.rose()) {
+                currentState = COUNTING;
+                hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
+            }
+
             break;
 
         default:
@@ -192,7 +408,7 @@ void hgStateMachine() {
             if (sDown.rose()) {
                 selectedTimeStep =
                     (selectedTimeStep + 1) % NUM_TIME_STEP_OPTIONS;
-                // hg.setTimeStep(TIME_STEP_OPTIONS[selectedTimeStep]);
+                hg.setTimeStep(TIME_STEP_OPTIONS[selectedTimeStep]);
             }
             break;
 
@@ -200,99 +416,23 @@ void hgStateMachine() {
             if (Serial) Serial.println("EFFECT CONFIG");
             if (sDown.rose())
                 selectedEffect = (selectedEffect + 1) % NUM_EFFECT_OPTIONS;
-            Serial.print("Selected effect: ");
+            Serial.print("Selected countingEffect: ");
             Serial.println(selectedEffect);
             break;
 
         case COLOR:
             if (Serial) Serial.println("COLOR CONFIG");
+            Serial.print("Selected color: ");
+            Serial.println(selectedColor);
             if (sDown.rose()) {
                 selectedColor = (selectedColor + 1) % NUM_COLOR_OPTIONS;
+                hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
             }
             break;
 
         default:
             if (Serial) Serial.println("Invalid config mode!");
             break;
-    }
-}
-
-// TODO: set magic numbers as macros
-void defaultEffect(int index) {
-    if (hg.getLedDutyCycle(index) != 1) hg.setLedDutyCycle(index, 1);
-}
-
-void blinkEffect(int index) {
-    if (hg.getLedDutyCycle(index) != 1) hg.setLedDutyCycle(index, 1);
-
-    if ((index + 1) == hg.getCurrentStep()) {
-        uint32_t elapsedTime =
-            hg.getTimeStep() * hg.getCurrentStep() - hg.getTimeRemaining();
-
-        if (elapsedTime >= 0.5 * hg.getTimeStep())
-            hg.setLedDutyCycle(index, 0.5);
-    }
-}
-
-void fadeEffect(int index) {
-    if (hg.getLedBrightness(index) != 1) hg.setLedBrightness(index, 1);
-    if (hg.getLedDutyCycle(index) != 1) hg.setLedDutyCycle(index, 1);
-
-    if ((index + 1) == hg.getCurrentStep()) {
-        uint32_t rTimeInStep =
-            hg.getTimeStep() * hg.getCurrentStep() - hg.getTimeRemaining();
-        
-        // 1 -- timeStep
-        // x -- rTimeInStep
-        // x =  rTimeInStep / timeStep
-
-        // since we want to fade from 100% to 0%
-        // we need to invert the brightness
-        // 1 - x = 1 - rTimeInStep / timeStep
-
-        Serial.print("ElapsedTime: ");
-        Serial.println(rTimeInStep);
-        Serial.print("New brightness: ");
-        Serial.println(1 -(float)rTimeInStep / hg.getTimeStep());
-
-        hg.setLedBrightness(index, 1 - (float)rTimeInStep / hg.getTimeStep());
-    }
-}
-
-void applyEffects() {
-    if (currentState != COUNTING) return;
-
-    for (int i = 0; i < hg.getLedCount(); i++) {
-        switch (selectedEffect) {
-            case DEFAULT:
-                defaultEffect(i);
-                break;
-
-            case BLINK:
-                blinkEffect(i);
-                break;
-
-            case FADE:
-                fadeEffect(i);
-                break;
-
-            default:
-                if (Serial) Serial.println("Invalid effect!");
-                delay(1000);
-                break;
-        }
-    }
-}
-
-void updateLedStrip() {
-    uint8_t r, g, b;
-
-    for (int i = 0; i < hg.getLedCount(); i++) {
-        r = (uint8_t)((hg.getLedColor(i) >> 16) & 0xFF);
-        g = (uint8_t)((hg.getLedColor(i) >> 8) & 0xFF);
-        b = (uint8_t)((hg.getLedColor(i)) & 0xFF);
-
-        npStrip.neoPixelSetValue(i, r, g, b, true);
     }
 }
 
@@ -314,13 +454,14 @@ void loop() {
         sUp.update();
         sDown.update();
 
+        // if(currentState != PAUSED)
+        //     hg.update();
+
         hg.update();
 
         updateLedStrip();
 
         hgStateMachine();
-
-        applyEffects();
 
         delay(10);
     }

@@ -59,6 +59,8 @@ int Led::getColorSettings() {
 
 float Led::getBrightness() { return brightness; }
 
+unsigned long Led::getTime() { return this->time; }
+
 void Led::setDutyCycle(float dutyCycle) { this->dutyCycle = dutyCycle; }
 
 void Led::setPeriod(unsigned long period) { this->period = period; }

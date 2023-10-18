@@ -7,8 +7,8 @@ LedHourglass::LedHourglass(ulong numSteps, ulong timeStepMS, int ledCount,
         this->ledVec.push_back(*(new Led()));
 
         // some default settings
-        this->ledVec[i].setColorSettings(0x7B, 0xB5, 0xDC);
-        this->ledVec[i].setBrightness(0.1);
+        this->ledVec[i].setColorSettings(0xF0, 0x00, 0xF0);
+        this->ledVec[i].setBrightness(1);
     }
 }
 
@@ -40,6 +40,10 @@ void LedHourglass::setLedDutyCycle(int index, float dutyCycle) {
     this->ledVec[index].setDutyCycle(dutyCycle);
 }
 
+void LedHourglass::setLedPeriod(int index, uint32_t period) {
+    this->ledVec[index].setPeriod(period);
+}
+
 void LedHourglass::setLedBrightness(int index, float brightness) {
     this->ledVec[index].setBrightness(brightness);
 }
@@ -68,4 +72,12 @@ float LedHourglass::getLedDutyCycle(int index) {
 
 float LedHourglass::getLedBrightness(int index) {
     return this->ledVec[index].getBrightness();
+}
+
+uint32_t LedHourglass::getLedPeriod(int index) {
+    return this->ledVec[index].getPeriod();
+}
+
+uint32_t LedHourglass::getLedBuiltInTime(int index) {
+    return this->ledVec[index].getTime();
 }

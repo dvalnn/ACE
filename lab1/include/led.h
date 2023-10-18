@@ -24,6 +24,7 @@ class Led {
     int getActiveColor();
     int getColorSettings();
     float getBrightness();
+    unsigned long getTime();
 
     void setDutyCycle(float dutyCycle);
     void setPeriod(unsigned long period);

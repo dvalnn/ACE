@@ -20,13 +20,15 @@ class LedHourglass : public Hourglass {
     void setLedBrightness(int index, float brightness);
     void setAllLedsBrightness(float brightness);
     void setLedDutyCycle(int index, float dutyCycle);
-    void setLedFrequency(int index, uint32_t freq);
+    void setLedPeriod(int index, uint32_t period);
 
     int getLedCount();
     uint32_t getLedColor(int index);
     float getLedBrightness(int index);
     float getLedDutyCycle(int index);
-    uint32_t getLedFrequency(int index);
+    uint32_t getLedPeriod(int index);
+
+    uint32_t getLedBuiltInTime(int index);
 
    private:
     std::vector<Led> ledVec;
