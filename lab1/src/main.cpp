@@ -2,6 +2,9 @@
 #include <Bounce2.h>
 #include <NeoPixelConnect.h>
 #include <Serial.h>
+#include <elapsedMillis.h>
+
+#include <cmath>
 
 #include "ledHourglass.h"
 
@@ -73,6 +76,8 @@ typedef enum countingEffect {
 
 //* 5 segments, 2 seconds per segment
 LedHourglass hg(N_SEGMENTS, SEGMENT_TIME, N_LEDS, CONTROL_PIN);
+
+elapsedMillis idleTimer;
 
 // TODO: set magic numbers as macros
 void defaultEffect(int index) {
@@ -154,7 +159,7 @@ void handleConfigVFX(int led) {
             //* For this effect the Led only needs to turn off and on normally
             //* so we will be using the duty cycle to 0.7 so that
             //* the led is on for timeStep seconds and off for 0.3*timeStep
-            // seconds.
+            //* seconds.
             //* This is enough for the user to see the effect.
             hg.setLedDutyCycle(led, 0.70);
             hg.setLedPeriod(led, (uint32_t)((TIME_STEP_OPTIONS[1]) / 0.70));
@@ -259,6 +264,22 @@ void configEffect() {
     }
 }
 
+#define PI 3.14159265
+
+void idleEffect() {
+    if (idleTimer % 200 != 0) return;
+
+    for (int index = 0; index < hg.getLedCount(); index++) {
+        if (hg.getLedBrightness(index) != 1) hg.setLedBrightness(index, 1);
+        if (hg.getLedPeriod(index) != 500) hg.setLedDutyCycle(index, 500);
+
+        uint32_t dutyCycle = std::sin(
+            millis() + (uint32_t)(index * (2 * PI) / hg.getLedCount()));
+
+        hg.setLedDutyCycle(index, abs(dutyCycle));
+    }
+}
+
 void finishedEffect() {
     for (int index = 0; index < hg.getLedCount(); index++) {
         if (hg.getLedBrightness(index) != 1) hg.setLedBrightness(index, 1);
@@ -294,6 +315,20 @@ void hgStateMachine() {
                 statePreConfig = INIT;
                 break;
             }
+            if (idleTimer >= 3000) currentState = IDLE;
+            break;
+
+        case IDLE:
+            if (Serial) Serial.println("IDLE");
+            if (!hg.isPaused()) hg.pause();
+            if (hg.getTimeRemaining() < hg.getTotalTime()) hg.reset();
+            if (sGo.rose()) currentState = COUNTING;
+            if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
+                currentState = ENTER_CONFIG;
+                statePreConfig = INIT;
+                break;
+            }
+
             break;
 
         case COUNTING:
@@ -320,7 +355,10 @@ void hgStateMachine() {
             }
 
             if (sDown.rose()) currentState = PAUSED;
-            if (hg.isFinished()) currentState = FINISHED;
+            if (hg.isFinished()) {
+                idleTimer = 0;
+                currentState = FINISHED;
+            }
             break;
 
         case PAUSED:
@@ -389,6 +427,11 @@ void hgStateMachine() {
 
             if (sGo.rose()) {
                 currentState = COUNTING;
+                hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
+            }
+
+            if (idleTimer > 3000) {
+                currentState = IDLE;
                 hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
             }
 
