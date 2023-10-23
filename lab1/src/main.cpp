@@ -230,8 +230,10 @@ void handleConfigVFX(int led) {
 }
 
 void configEffect() {
-    for (int index = 0; index < hg.getLedCount(); index++)
+    for (int index = 0; index < hg.getLedCount(); index++) {
         if (hg.getLedDutyCycle(index) != 0) hg.setLedDutyCycle(index, 0);
+        if (hg.getLedBrightness(index) != 1) hg.setLedBrightness(index, 1);
+    }
 
     // enable the led corresponding to the configuration mode
     // to blink
@@ -264,19 +266,33 @@ void configEffect() {
     }
 }
 
-#define PI 3.14159265
-
 void idleEffect() {
-    if (idleTimer % 200 != 0) return;
+    if (idleTimer <= 750) return;
+
+    idleTimer = 0;
+
+    static int offset = 0;
 
     for (int index = 0; index < hg.getLedCount(); index++) {
+        if (hg.getLedBrightness(index) != 0.5) hg.setLedBrightness(index, 0.5);
+        if (hg.getLedPeriod(index) != 750) hg.setLedPeriod(index, 750);
+
+        double dutyCycle = (float)(index + 1) / hg.getLedCount();
+
+        Serial.println(dutyCycle);
+        hg.setLedDutyCycle(index, dutyCycle / 2 + 0.25);
+        Serial.print(dutyCycle / 2 + 0.25);
+        hg.setLedColor(index,
+                       COLOR_OPTIONS[(index + offset) % NUM_COLOR_OPTIONS]);
+    }
+    offset++;
+}
+
+void pauseEffect() {
+    for (int index = 0; index < hg.getLedCount(); index++) {
         if (hg.getLedBrightness(index) != 1) hg.setLedBrightness(index, 1);
-        if (hg.getLedPeriod(index) != 500) hg.setLedDutyCycle(index, 500);
-
-        uint32_t dutyCycle = std::sin(
-            millis() + (uint32_t)(index * (2 * PI) / hg.getLedCount()));
-
-        hg.setLedDutyCycle(index, abs(dutyCycle));
+        if (hg.getLedDutyCycle(index) != 0.5) hg.setLedDutyCycle(index, 0.5);
+        if (hg.getLedPeriod(index) != 500) hg.setLedPeriod(index, 500);
     }
 }
 
@@ -322,12 +338,18 @@ void hgStateMachine() {
             if (Serial) Serial.println("IDLE");
             if (!hg.isPaused()) hg.pause();
             if (hg.getTimeRemaining() < hg.getTotalTime()) hg.reset();
-            if (sGo.rose()) currentState = COUNTING;
+            if (sGo.rose()) {
+                hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
+                currentState = COUNTING;
+            }
             if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
                 currentState = ENTER_CONFIG;
                 statePreConfig = INIT;
+                hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
+
                 break;
             }
+            idleEffect();
 
             break;
 
@@ -371,6 +393,7 @@ void hgStateMachine() {
                 statePreConfig = COUNTING;
                 break;
             }
+            pauseEffect();
             break;
 
         //* buffer state to ensure the button is released before entering
@@ -432,7 +455,6 @@ void hgStateMachine() {
 
             if (idleTimer > 3000) {
                 currentState = IDLE;
-                hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
             }
 
             break;
