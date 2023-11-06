@@ -365,15 +365,7 @@ void hgStateMachine() {
             if (Serial) Serial.println("COUNTING");
             if (hg.isPaused()) hg.resume();
             if (sGo.rose()) hg.reset();
-            if (sUp.rose()) {
-                //! timeInc = Tstep * (1 + CurrentStep) - rTime
-                //* increment a full time step
-                //* + time remaining in current step
-                uint32_t timeInc =
-                    hg.getTimeStep() * (1 + hg.getCurrentStep()) -
-                    hg.getTimeRemaining();
-
-                hg.addTime(timeInc);
+                hg.addTime(hg.getTimeStep());
             }
 
             if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
