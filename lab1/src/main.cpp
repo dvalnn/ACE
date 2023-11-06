@@ -154,7 +154,7 @@ void handleConfigVFX(int led) {
     switch (selectedEffect) {
         case DEFAULT:
             //* Brightness is set to 1 to remove previous settings
-            if (hg.getLedBrightness(led) != 1) hg.setLedBrightness(led, 1);
+            hg.setLedBrightness(led, 1);
 
             //* For this effect the Led only needs to turn off and on normally
             //* so we will be using the duty cycle to 0.7 so that
@@ -167,7 +167,7 @@ void handleConfigVFX(int led) {
 
         case BLINK:
             //* Brightness is set to 1 to remove previous settings
-            if (hg.getLedBrightness(led) != 1) hg.setLedBrightness(led, 1);
+            hg.setLedBrightness(led, 1);
 
             //* For this effect the Led needs to blink when half the
             //* timeStep has passed.
@@ -201,7 +201,7 @@ void handleConfigVFX(int led) {
 
         case FADE:
             //* Brightness is set to 1 to remove previous settings
-            if (hg.getLedBrightness(led) != 1) hg.setLedBrightness(led, 1);
+            hg.setLedBrightness(led, 1);
 
             //* For this effect the Led needs to fade from 100% to 0%
             //* Like before, we set the duty cycle to 1 so that the led is on
@@ -231,16 +231,21 @@ void handleConfigVFX(int led) {
 
 void configEffect() {
     for (int index = 0; index < hg.getLedCount(); index++) {
-        if (hg.getLedDutyCycle(index) != 0) hg.setLedDutyCycle(index, 0);
-        if (hg.getLedBrightness(index) != 1) hg.setLedBrightness(index, 1);
+        //if (hg.getLedDutyCycle(index) != 1) hg.setLedDutyCycle(index, 1);
+        //if (hg.getLedBrightness(index) != 1) hg.setLedBrightness(index, 1);
+        hg.setLedDutyCycle(index, 0);
+        hg.setLedBrightness(index, 1);
     }
 
     // enable the led corresponding to the configuration mode
     // to blink
+    Serial.println(confMode);
     hg.setLedDutyCycle(confMode, 0.5);
     hg.setLedColor(confMode, 0xFF0000);
+    hg.setLedBrightness(confMode, 1);
 
     int displayLed = hg.getLedCount() - 1;
+    hg.setLedBrightness(displayLed, 1);
 
     switch (confMode) {
         case TIME_STEP:
@@ -258,6 +263,7 @@ void configEffect() {
 
         case COLOR:
             hg.setLedDutyCycle(displayLed, 1);
+            hg.setLedBrightness(displayLed, 1);
             hg.setLedColor(displayLed, COLOR_OPTIONS[selectedColor]);
             break;
 
@@ -331,7 +337,7 @@ void hgStateMachine() {
                 statePreConfig = INIT;
                 break;
             }
-            if (idleTimer >= 3000) currentState = IDLE;
+            if (idleTimer >= 30000) currentState = IDLE;
             break;
 
         case IDLE:
@@ -404,6 +410,7 @@ void hgStateMachine() {
             if (sUp.rose()) {
                 confMode = TIME_STEP;
                 currentState = CONFIG;
+                hg.reset();
                 break;
             }
             break;
@@ -453,7 +460,7 @@ void hgStateMachine() {
                 hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
             }
 
-            if (idleTimer > 3000) {
+            if (idleTimer > 30000) {
                 currentState = IDLE;
             }
 
