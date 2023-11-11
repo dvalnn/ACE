@@ -35,9 +35,6 @@ class Hourglass {
     // Operator overloads
     operator std::string() const;
     Hourglass& operator=(const Hourglass& other);
-    // Hourglass& operator=(const uint32_t& val);
-    // Hourglass& operator+=(const uint32_t& val);
-    // Hourglass& operator-=(const uint32_t& val);
 
    private:
     bool paused;
