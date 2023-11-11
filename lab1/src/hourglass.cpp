@@ -115,22 +115,3 @@ Hourglass& Hourglass::operator=(const Hourglass& other) {
 
     return *this;
 }
-
-// Hourglass& Hourglass::operator=(const uint32this->t& val) {
-//     this->timeRemaining = val;
-//     this->timeRemaining = this->timeRemaining > this->totalTime ?
-//     this->totalTime : this->timeRemaining; this->timeRemaining =
-//     this->timeRemaining < 0 ? 0 : this->timeRemaining; return *this;
-// }
-
-// Hourglass& Hourglass::operator+=(const uint32this->t& val) {
-//     this->timeRemaining += val;
-//     this->timeRemaining = this->timeRemaining > this->totalTime ?
-//     this->totalTime : this->timeRemaining; return *this;
-// }
-
-// Hourglass& Hourglass::operator-=(const uint32this->t& val) {
-//     this->timeRemaining -= val;
-//     this->timeRemaining = this->timeRemaining < 0 ? 0 : this->timeRemaining;
-//     return *this;
-// }
