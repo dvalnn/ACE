@@ -120,7 +120,7 @@ components and does not implement any led-related functionalities. As such it,
 it comes with a public API that allows the user to interact with the hourglass
 and an overload of the `operator std::string()` to allow for easy printing of
 the current state of the hourglass\
- This class is also dependent on the `elapsedMillis` library (see [3.1](#31-third-party-libraries-and-functions)).
+ This class is also dependent on the `elapsedMillis` library (see [3.1](#3.1-third-party-libraries-and-functions)).
 
 An Hourglass object is instantiated by defining the number of steps and the
 time for each step in milliseconds. The corresponding total time is then
@@ -209,7 +209,197 @@ led strip to the user. In our case, this is achieved by periodically
 passing the color and brightness values for each led to the
 `NeoPixelConnect::neoPixelSetValue()` function.
 
+This is done in the main loop (see [3.2.3](#3.2.3-main-loop)) and the update logic
+is defined as follows:
+
+```c++
+void updateLedStrip() {
+  uint8_t r, g, b;
+
+  for (int i = 0; i < hg.getLedCount(); i++) {
+    r = (uint8_t)((hg.getLedColor(i) >> 16) & 0xFF);
+    g = (uint8_t)((hg.getLedColor(i) >> 8) & 0xFF);
+    b = (uint8_t)((hg.getLedColor(i)) & 0xFF);
+
+    npStrip.neoPixelSetValue(i, r, g, b, true);
+  }
+}
+```
+
+The for each LED the color is extracted from the LedHourglass object and
+converted to the 32bit RGB format required by the NeoPixelConnect library.
+each led is then updated using the `NeoPixelConnect::neoPixelSetValue()` function.
+We leave the `autoShow` parameter to true to ensure that the led strip is updated
+as soon as possible.
+
 #### 3.2.2 State Machine Implementation
 
-The logic of the project was implemented using the state machines described in
-section 2.
+The state machines described in section [something] of the project are
+implemented in the 'main.cpp' file in a single function by the name of
+`void hgStateMachine()`. This function is called in the main loop of the
+program and is responsible for both the main and configuration state machines
+that are defined in two separate switch statements.
+The states themselves are defined with the following _enums_:
+
+```c++
+typedef enum state {
+  INIT,
+  IDLE,
+  COUNTING,
+  PAUSED,
+  FINISHED,
+  ENTER_CONFIG,
+  CONFIG,
+  EXIT_CONFIG,
+} state;
+
+typedef enum configMode {
+  TIME_STEP,
+  EFFECT,
+  COLOR,
+  NONE,
+} configMode;
+```
+
+This makes it simple to keep track of the current state of the state machines
+and improves code readability. Likewise, the `configMode` _enum_ is used to keep
+track of the current configuration mode. The 'NONE' mode is an auxiliary mode
+to signal that the program is not running in configuration mode.
+
+#### 3.2.3 Visual Effects
+
+The visual effects required for this lab work were implemented in dedicated
+functions that are called according to the current configuration. They were
+build using the building blocks provided by the 'LedHourglass' class API. This
+made the code very simple and easy to read since only a few lines of code are
+required per effect.\
+All visual effects belong to one of two categories:
+
+- Countdown effects
+- State effects
+
+##### 3.2.3.1 Countdown Effects
+
+Countdown effects, like the name suggests, are effects that are displayed while
+the hourglass is counting down. There are a total of 3 distinct countdown effects:
+
+1. **Default countdown effect** \
+   In this mode each led on the strip simply turns off when the corresponding
+   time has elapsed. This is the default behaviour of the hourglass so no
+   code is required to implement this effect.
+
+2. **Blinking countdown effect** \
+   In this mode each led on the strip starts blinking during the second half
+   of its corresponding time step. This is achieved by setting the duty cycle
+   of the LED to 50% when the time remaining is less than half the time step
+   that the led is associated with.
+
+   ```c++
+     if ((ledIndex + 1) == hg.getCurrentStep()) {
+       uint32_t elapsedTime =
+           hg.getTimeStep() * hg.getCurrentStep() - hg.getTimeRemaining();
+
+       if (elapsedTime >= 0.5 * hg.getTimeStep())
+         hg.setLedDutyCycle(ledIndex, 0.5);
+     }
+   ```
+
+   P.S.: The `hg` variable is an instance of the `LedHourglass` class.
+
+3. **Fading countdown effect** \
+    For the fading effect, the led brightness is gradually decreased as the time
+   elapses. Once again recurring to the LedHourglass API we can achieve this by
+   setting the brightness of the led to a value proportional to the time remaining
+   in its corresponding time step.
+
+   ```c++
+     if ((ledIndex + 1) == hg.getCurrentStep()) {
+       // calculate the remaining time in the current step
+       uint32_t rTimeInStep =
+           hg.getTimeStep() * hg.getCurrentStep() - hg.getTimeRemaining();
+
+       // 1 -- timeStep
+       // x -- rTimeInStep
+       // x =  rTimeInStep / timeStep
+
+       // since we want to fade from 100% to 0%
+       // we need to invert the brightness
+       // 1 - x = 1 - rTimeInStep / timeStep
+
+       hg.setLedBrightness(ledIndex, 1 - (float)rTimeInStep / hg.getTimeStep());
+     }
+   ```
+
+   P.S.: The led brightness is a floating point number between 0 and 1.
+
+##### 3.2.3.2 State Effects
+
+State effects are effects that are displayed when the hourglass is in a specific
+state such as paused, finished, idle or in configuration mode.
+
+1. **Idle effect** \
+   In this mode, the LED duty cycle and color is set as a function of its index
+   in the LED strip to which is added a cyclic offset. This creates a wave-like
+   cycle of colors that moves along the led strip.
+
+   ```c++
+     double dutyCycle = (float)(index + 1) / hg.getLedCount();
+     hg.setLedDutyCycle(index, dutyCycle / 2 + 0.25);
+     hg.setLedColor(index, COLOR_OPTIONS[(index + offset) % NUM_COLOR_OPTIONS]);
+   ```
+
+2. **Paused effect** \
+   When the countdown is paused, all remaining LEDs blink in unison with a period
+   of 500 milliseconds. Achieving this behaviour is trivial and only a matter of
+   calling the corresponding LED setter methods.
+
+3. **Finished counting effect** \
+   This is a variant of the paused effect, only all LEDs are turned on and blink
+   with the red color.
+
+4. **Configuration Effect** \
+   While the code for the other visual effects is very straightforward and only
+   a matter of calling the right LedHourglass class methods, the configurations
+   effect, due to its nature, requires more minute LED control and required a
+   different approach.
+
+   The configuration effects are created by first bypassing the hourglass
+   class standard behaviour and then manipulating the LEDs individually. We
+   We can easily do this since the LED and Hourglass logic are decoupled as
+   described in the sections above (see [3.2.1](#3.2.1-Class-Structure)).
+
+   By first resetting and freezing the countdown, we ensure all the LEDs are
+   available for manipulation. Then we can manually activate the desired LEDs
+   to showcase the various configuration parameters such as the time step, the
+   counting effect and the LED color.
+
+   When a configuration is selected, the configuration effect is cleared, replaced
+   with the new settings and the Hourglass resumes normal operation.
+
+#### 3.2.4 Main Loop
+
+Since all the of the project feature are encapsulated in either their own classed
+or in dedicated functions, the main loop is kept very simple. This helps with
+code readability and maintainability, making it easier to add new features.
+
+```c++
+void loop() {
+  for (;;) {
+    // update buttons
+    sGo.update();
+    sUp.update();
+    sDown.update();
+
+    // update hourglass internal logic
+    hg.update();
+
+    updateLedStrip();
+
+    // run the state machine logic
+    hgStateMachine();
+
+    // 10ms delay used to prevent freewheeling
+    delay(10);
+  }
+}
+```
