@@ -1,10 +1,24 @@
 # lab report
 
-<!--toc:start-->
+<!-- prettier-ignore-start -->
 
+<!--toc:start-->
 - [lab report](#lab-report)
-  - [3. Software Implementation](#3-software-implementation) - [3.1 Third Party Libraries and Functions](#31-third-party-libraries-and-functions) - [3.2 Implementation Details](#32-implementation-details) - [3.2.1 Class Structure](#321-class-structure) - [3.2.1.1 Class Led](#3211-class-led) - [3.2.1.2 Class Hourglass](#3212-class-hourglass) - [3.2.1.3 Class LedHourglass](#3213-class-ledhourglass)
-  <!--toc:end-->
+  - [3. Software Implementation](#3-software-implementation)
+    - [3.1 Third Party Libraries and Functions](#31-third-party-libraries-and-functions)
+    - [3.2 Implementation Details](#32-implementation-details)
+      - [3.2.1 Class Structure](#321-class-structure)
+        - [3.2.1.1 Class Led](#3211-class-led)
+        - [3.2.1.2 Class Hourglass](#3212-class-hourglass)
+        - [3.2.1.3 Class LedHourglass](#3213-class-ledhourglass)
+      - [3.2.2 State Machine Implementation](#322-state-machine-implementation)
+      - [3.2.3 Visual Effects](#323-visual-effects)
+        - [3.2.3.1 Countdown Effects](#3231-countdown-effects)
+        - [3.2.3.2 State Effects](#3232-state-effects)
+      - [3.2.4 Main Loop](#324-main-loop)
+<!--toc:end-->
+
+<!-- prettier-ignore-end -->
 
 ## 3. Software Implementation
 
