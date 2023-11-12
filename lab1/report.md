@@ -208,3 +208,8 @@ platforms, with the downside of offloading the responsibility of updating the
 led strip to the user. In our case, this is achieved by periodically
 passing the color and brightness values for each led to the
 `NeoPixelConnect::neoPixelSetValue()` function.
+
+#### 3.2.2 State Machine Implementation
+
+The logic of the project was implemented using the state machines described in
+section 2.
