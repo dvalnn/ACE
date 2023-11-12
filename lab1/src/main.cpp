@@ -390,156 +390,155 @@ void hgStateMachine() {
     if (sGo.rose())
       hg.reset();
     hg.addTime(hg.getTimeStep());
-  }
 
-  if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
-    currentState = ENTER_CONFIG;
-    statePreConfig = COUNTING;
+    if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
+      currentState = ENTER_CONFIG;
+      statePreConfig = COUNTING;
+      break;
+    }
+
+    if (sDown.rose())
+      currentState = PAUSED;
+    if (hg.isFinished()) {
+      idleTimer = 0;
+      currentState = FINISHED;
+    }
+    break;
+
+  case PAUSED:
+    if (Serial)
+      Serial.println("PAUSED");
+    if (!hg.isPaused())
+      hg.pause();
+    if (sGo.rose())
+      hg.reset();
+    if (sDown.rose())
+      currentState = COUNTING;
+    if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
+      currentState = ENTER_CONFIG;
+      statePreConfig = COUNTING;
+      break;
+    }
+    pauseEffect();
+    break;
+
+  //* buffer state to ensure the button is released before entering
+  case ENTER_CONFIG:
+    configEffect();
+    if (Serial)
+      Serial.println("ENTER_CONFIG");
+    if (!hg.isPaused())
+      hg.pause();
+    if (sUp.rose()) {
+      confMode = TIME_STEP;
+      currentState = CONFIG;
+      hg.reset();
+      break;
+    }
+    break;
+
+  case CONFIG:
+    configEffect();
+    if (Serial)
+      Serial.println("CONFIG");
+    if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
+      currentState = EXIT_CONFIG;
+      confMode = NONE;
+      break;
+    }
+    // Simple hack to make rotate through config modes
+    // This works because the enum values are 0-3
+    if (sUp.rose())
+      confMode = (configMode)((((int)confMode) + 1) % 3);
+    break;
+
+  case EXIT_CONFIG:
+    if (Serial)
+      Serial.println("EXIT_CONFIG");
+    if (!hg.isPaused())
+      hg.pause();
+    if (sUp.rose()) {
+      currentState = statePreConfig;
+      applyCountingEffectAllLeds();
+      hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
+      break;
+    }
+    break;
+
+  case FINISHED:
+    if (Serial)
+      Serial.println("FINISHED");
+
+    finishedEffect();
+    hg.setAllLedsColor(0xFF0000);
+
+    if (!hg.isPaused())
+      hg.pause();
+    if (hg.getTimeRemaining() < hg.getTotalTime())
+      hg.reset();
+
+    if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
+      currentState = ENTER_CONFIG;
+      statePreConfig = FINISHED;
+      hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
+      break;
+    }
+
+    if (sGo.rose()) {
+      currentState = COUNTING;
+      hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
+    }
+
+    if (idleTimer > 30000) {
+      currentState = IDLE;
+    }
+
+    break;
+
+  default:
+    if (Serial)
+      Serial.println("Invalid state!");
     break;
   }
 
-  if (sDown.rose())
-    currentState = PAUSED;
-  if (hg.isFinished()) {
-    idleTimer = 0;
-    currentState = FINISHED;
-  }
-  break;
+  switch (confMode) {
+  case NONE:
+    break;
 
-case PAUSED:
-  if (Serial)
-    Serial.println("PAUSED");
-  if (!hg.isPaused())
-    hg.pause();
-  if (sGo.rose())
-    hg.reset();
-  if (sDown.rose())
-    currentState = COUNTING;
-  if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
-    currentState = ENTER_CONFIG;
-    statePreConfig = COUNTING;
+  case TIME_STEP:
+    if (Serial)
+      Serial.println("TIME_STEP CONFIG");
+    if (sDown.rose()) {
+      selectedTimeStep = (selectedTimeStep + 1) % NUM_TIME_STEP_OPTIONS;
+      hg.setTimeStep(TIME_STEP_OPTIONS[selectedTimeStep]);
+    }
+    break;
+
+  case EFFECT:
+    if (Serial)
+      Serial.println("EFFECT CONFIG");
+    if (sDown.rose())
+      selectedEffect = (selectedEffect + 1) % NUM_EFFECT_OPTIONS;
+    Serial.print("Selected countingEffect: ");
+    Serial.println(selectedEffect);
+    break;
+
+  case COLOR:
+    if (Serial)
+      Serial.println("COLOR CONFIG");
+    Serial.print("Selected color: ");
+    Serial.println(selectedColor);
+    if (sDown.rose()) {
+      selectedColor = (selectedColor + 1) % NUM_COLOR_OPTIONS;
+      hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
+    }
+    break;
+
+  default:
+    if (Serial)
+      Serial.println("Invalid config mode!");
     break;
   }
-  pauseEffect();
-  break;
-
-//* buffer state to ensure the button is released before entering
-case ENTER_CONFIG:
-  configEffect();
-  if (Serial)
-    Serial.println("ENTER_CONFIG");
-  if (!hg.isPaused())
-    hg.pause();
-  if (sUp.rose()) {
-    confMode = TIME_STEP;
-    currentState = CONFIG;
-    hg.reset();
-    break;
-  }
-  break;
-
-case CONFIG:
-  configEffect();
-  if (Serial)
-    Serial.println("CONFIG");
-  if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
-    currentState = EXIT_CONFIG;
-    confMode = NONE;
-    break;
-  }
-  // Simple hack to make rotate through config modes
-  // This works because the enum values are 0-3
-  if (sUp.rose())
-    confMode = (configMode)((((int)confMode) + 1) % 3);
-  break;
-
-case EXIT_CONFIG:
-  if (Serial)
-    Serial.println("EXIT_CONFIG");
-  if (!hg.isPaused())
-    hg.pause();
-  if (sUp.rose()) {
-    currentState = statePreConfig;
-    applyCountingEffectAllLeds();
-    hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
-    break;
-  }
-  break;
-
-case FINISHED:
-  if (Serial)
-    Serial.println("FINISHED");
-
-  finishedEffect();
-  hg.setAllLedsColor(0xFF0000);
-
-  if (!hg.isPaused())
-    hg.pause();
-  if (hg.getTimeRemaining() < hg.getTotalTime())
-    hg.reset();
-
-  if (sUp.read() == LOW and sUp.currentDuration() >= 3000) {
-    currentState = ENTER_CONFIG;
-    statePreConfig = FINISHED;
-    hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
-    break;
-  }
-
-  if (sGo.rose()) {
-    currentState = COUNTING;
-    hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
-  }
-
-  if (idleTimer > 30000) {
-    currentState = IDLE;
-  }
-
-  break;
-
-default:
-  if (Serial)
-    Serial.println("Invalid state!");
-  break;
-}
-
-switch (confMode) {
-case NONE:
-  break;
-
-case TIME_STEP:
-  if (Serial)
-    Serial.println("TIME_STEP CONFIG");
-  if (sDown.rose()) {
-    selectedTimeStep = (selectedTimeStep + 1) % NUM_TIME_STEP_OPTIONS;
-    hg.setTimeStep(TIME_STEP_OPTIONS[selectedTimeStep]);
-  }
-  break;
-
-case EFFECT:
-  if (Serial)
-    Serial.println("EFFECT CONFIG");
-  if (sDown.rose())
-    selectedEffect = (selectedEffect + 1) % NUM_EFFECT_OPTIONS;
-  Serial.print("Selected countingEffect: ");
-  Serial.println(selectedEffect);
-  break;
-
-case COLOR:
-  if (Serial)
-    Serial.println("COLOR CONFIG");
-  Serial.print("Selected color: ");
-  Serial.println(selectedColor);
-  if (sDown.rose()) {
-    selectedColor = (selectedColor + 1) % NUM_COLOR_OPTIONS;
-    hg.setAllLedsColor(COLOR_OPTIONS[selectedColor]);
-  }
-  break;
-
-default:
-  if (Serial)
-    Serial.println("Invalid config mode!");
-  break;
-}
 }
 
 void setup() {
