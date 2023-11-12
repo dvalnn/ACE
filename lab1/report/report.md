@@ -9,20 +9,19 @@
     - [2.1. Schematic circuit diagram](#21-schematic-circuit-diagram)
     - [2.2. State Machines](#22-state-machines)
       - [2.2.1 Core State Machine](#221-core-state-machine)
-      - [2.2.2.2 Configuration State Machine](#2222-configuration-state-machine)
+      - [2.2.2 Configuration State Machine](#222-configuration-state-machine)
   - [3. Software Implementation](#3-software-implementation)
     - [3.1 Third Party Libraries and Functions](#31-third-party-libraries-and-functions)
-    - [3.2 Implementation Details](#32-implementation-details)
-      - [3.2.1 Class Structure](#321-class-structure)
-        - [3.2.1.1 Class Led](#3211-class-led)
-        - [3.2.1.2 Class Hourglass](#3212-class-hourglass)
-        - [3.2.1.3 Class LedHourglass](#3213-class-ledhourglass)
-      - [3.2.2 State Machine Implementation](#322-state-machine-implementation)
-      - [3.2.3 Visual Effects](#323-visual-effects)
-        - [3.2.3.1 Countdown Effects](#3231-countdown-effects)
-        - [3.2.3.2 State Effects](#3232-state-effects)
-      - [3.2.4 Main Loop](#324-main-loop)
-- [4. Conclusion](#4-conclusion)
+    - [3.2 Class Structure](#32-class-structure)
+      - [3.2.1 Class Led](#321-class-led)
+      - [3.2.2 Class Hourglass](#322-class-hourglass)
+      - [3.2.3 Class LedHourglass](#323-class-ledhourglass)
+    - [3.3 State Machine Implementation](#33-state-machine-implementation)
+    - [3.4 Visual Effects](#34-visual-effects)
+      - [3.4.1 Countdown Effects](#341-countdown-effects)
+      - [3.4.2 State Effects](#342-state-effects)
+    - [3.5 Main Loop](#35-main-loop)
+  - [4. Conclusion](#4-conclusion)
 <!--toc:end-->
 
 <!-- prettier-ignore-end -->
@@ -81,7 +80,7 @@ When the timer ends all LEDs blink in the red colour in the finished state.
 The timer can start a new counting with sGo press or go to idle mode in case
 the system is inactive.
 
-#### 2.2.2.2 Configuration State Machine
+#### 2.2.2 Configuration State Machine
 
 ![figura3](/home/dvalinn/github/ACE/lab1/report/images/settingsMachineState.png)
 Figure: 3 Configuration State Machine Diagram
@@ -96,7 +95,7 @@ period of each LED time. And the last configuration mode makes possible to
 change colour of the strip to purple, blue, cyan, green, yellow, or white.
 
 Each setting follows an enumeration, making easier cycling between selected
-setting by pressing _sDown_ for each setting.
+setting by pressing sDown for each setting.
 
 ## 3. Software Implementation
 
@@ -155,13 +154,11 @@ Our project uses the following third party libraries and functions:
 
 - [ElapsedMillis](https://github.com/pfeerick/elapsedMillis/tree/master)
 
-  A simple wrapper library around the common `millis()` arduino function for
+  A simple wrapper library around the common `millis()` Arduino function for
   increased ease of use. We use this library to keep track of timer associated
   with various functionalities of the project.
 
-### 3.2 Implementation Details
-
-#### 3.2.1 Class Structure
+### 3.2 Class Structure
 
 The main design philosophy behind the project implementation was to build up
 the functionalities required for the application in a modular fashion, starting
@@ -169,7 +166,7 @@ from the more elementary components and using those to build up the more complex
 components. As such, the project is structured as a series of classes, each
 of which encapsulates a specific functionality of the project.
 
-##### 3.2.1.1 Class Led
+#### 3.2.1 Class Led
 
 This class encapsulates the functionalities of a single LED. It is responsible
 for keeping track of the LED's current color, the LED's current brightness, and
@@ -202,7 +199,7 @@ Each loop iteration, the `Led::update()` function should be called to update
 the internal state of the led object, which is responsible for updating the
 internal timer that keeps track of the LED's period and duty cycle.
 
-##### 3.2.1.2 Class Hourglass
+#### 3.2.2 Class Hourglass
 
 This class implements the basic logic of an hourglass. It is responsible for
 keeping track of the current state of the hourglass (running, paused, stopped,
@@ -255,7 +252,7 @@ uint32_t Hourglass::getTotalTime();
 uint32_t Hourglass::getTimeRemaining();
 ```
 
-##### 3.2.1.3 Class LedHourglass
+#### 3.2.3 Class LedHourglass
 
 The last and most complex class is the LedHourglass class, which is responsible
 for integrating and extending the functionalities of the individual Led and
@@ -290,7 +287,7 @@ expected of the project, as we do not have to worry about the inner logic of bot
 the individual LEDs and the hourglass. Instead, we can simply call the appropriate
 methods from the LedHourglass class API to achieve the desired result and
 focus on the overall project structure and design. This API also facilitates the
-creation of all sorts of visual effects suck as the blinking and fading animations
+creation of all sorts of visual effects such as the blinking and fading animations
 required for this lab work.
 
 Further conforming to the modular design concept, the LedHourglass class is also
@@ -318,13 +315,13 @@ void updateLedStrip() {
 }
 ```
 
-The for each LED the color is extracted from the LedHourglass object and
+For each LED the color is extracted from the LedHourglass object and
 converted to the 32bit RGB format required by the NeoPixelConnect library.
 each led is then updated using the `NeoPixelConnect::neoPixelSetValue()` function.
 We leave the `autoShow` parameter to true to ensure that the led strip is updated
 as soon as possible.
 
-#### 3.2.2 State Machine Implementation
+### 3.3 State Machine Implementation
 
 The state machines described in section [something] of the project are
 implemented in the 'main.cpp' file in a single function by the name of
@@ -358,7 +355,7 @@ and improves code readability. Likewise, the `configMode` _enum_ is used to keep
 track of the current configuration mode. The 'NONE' mode is an auxiliary mode
 to signal that the program is not running in configuration mode.
 
-#### 3.2.3 Visual Effects
+### 3.4 Visual Effects
 
 The visual effects required for this lab work were implemented in dedicated
 functions that are called according to the current configuration. They were
@@ -370,7 +367,7 @@ All visual effects belong to one of two categories:
 - Countdown effects
 - State effects
 
-##### 3.2.3.1 Countdown Effects
+#### 3.4.1 Countdown Effects
 
 Countdown effects, like the name suggests, are effects that are displayed while
 the hourglass is counting down. There are a total of 3 distinct countdown effects:
@@ -396,7 +393,7 @@ the hourglass is counting down. There are a total of 3 distinct countdown effect
      }
    ```
 
-   P.S.: The `hg` variable is an instance of the `LedHourglass` class.
+   Note: The `hg` variable is an instance of the `LedHourglass` class.
 
 3. **Fading countdown effect** \
     For the fading effect, the led brightness is gradually decreased as the time
@@ -422,9 +419,9 @@ the hourglass is counting down. There are a total of 3 distinct countdown effect
      }
    ```
 
-   P.S.: The led brightness is a floating point number between 0 and 1.
+   Note: The led brightness is a floating point number between 0 and 1.
 
-##### 3.2.3.2 State Effects
+#### 3.4.2 State Effects
 
 State effects are effects that are displayed when the hourglass is in a specific
 state such as paused, finished, idle or in configuration mode.
@@ -468,7 +465,7 @@ state such as paused, finished, idle or in configuration mode.
    When a configuration is selected, the configuration effect is cleared, replaced
    with the new settings and the Hourglass resumes normal operation.
 
-#### 3.2.4 Main Loop
+### 3.5 Main Loop
 
 Since all the of the project feature are encapsulated in either their own classed
 or in dedicated functions, the main loop is kept very simple. This helps with
@@ -498,6 +495,9 @@ void loop() {
 
 ## 4. Conclusion
 
-To sum up, the goal of the project was achieved without trouble. Additionally,
-it helped us understand the principles of embedded systems, including the
-configuration, programming, debugging and validation of the implemented system.
+This small project served as a good introduction to embedded systems programming.
+It was a good opportunity to learn about the various tools and libraries available
+on the Arduino ecosystem and to get acquainted with the Raspberry Pi Pico board.
+Going forward, we hope to build on the knowledge acquired during this lab work
+for the next project and to further improve our skills in embedded systems
+programming and design.
