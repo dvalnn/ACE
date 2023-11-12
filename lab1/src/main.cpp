@@ -87,28 +87,28 @@ void defaultEffect(int index) {
     hg.setLedDutyCycle(index, 1);
 }
 
-void blinkEffect(int index) {
-  if (hg.getLedBrightness(index) != 1)
-    hg.setLedBrightness(index, 1);
-  if (hg.getLedDutyCycle(index) != 1)
-    hg.setLedDutyCycle(index, 1);
+void blinkEffect(int ledIndex) {
+  if (hg.getLedBrightness(ledIndex) != 1)
+    hg.setLedBrightness(ledIndex, 1);
+  if (hg.getLedDutyCycle(ledIndex) != 1)
+    hg.setLedDutyCycle(ledIndex, 1);
 
-  if ((index + 1) == hg.getCurrentStep()) {
+  if ((ledIndex + 1) == hg.getCurrentStep()) {
     uint32_t elapsedTime =
         hg.getTimeStep() * hg.getCurrentStep() - hg.getTimeRemaining();
 
     if (elapsedTime >= 0.5 * hg.getTimeStep())
-      hg.setLedDutyCycle(index, 0.5);
+      hg.setLedDutyCycle(ledIndex, 0.5);
   }
 }
 
-void fadeEffect(int index) {
-  if (hg.getLedBrightness(index) != 1)
-    hg.setLedBrightness(index, 1);
-  if (hg.getLedDutyCycle(index) != 1)
-    hg.setLedDutyCycle(index, 1);
+void fadeEffect(int ledIndex) {
+  if (hg.getLedBrightness(ledIndex) != 1)
+    hg.setLedBrightness(ledIndex, 1);
+  if (hg.getLedDutyCycle(ledIndex) != 1)
+    hg.setLedDutyCycle(ledIndex, 1);
 
-  if ((index + 1) == hg.getCurrentStep()) {
+  if ((ledIndex + 1) == hg.getCurrentStep()) {
     uint32_t rTimeInStep =
         hg.getTimeStep() * hg.getCurrentStep() - hg.getTimeRemaining();
 
@@ -120,12 +120,7 @@ void fadeEffect(int index) {
     // we need to invert the brightness
     // 1 - x = 1 - rTimeInStep / timeStep
 
-    Serial.print("ElapsedTime: ");
-    Serial.println(rTimeInStep);
-    Serial.print("New brightness: ");
-    Serial.println(1 - (float)rTimeInStep / hg.getTimeStep());
-
-    hg.setLedBrightness(index, 1 - (float)rTimeInStep / hg.getTimeStep());
+    hg.setLedBrightness(ledIndex, 1 - (float)rTimeInStep / hg.getTimeStep());
   }
 }
 
@@ -292,10 +287,7 @@ void idleEffect() {
       hg.setLedPeriod(index, 750);
 
     double dutyCycle = (float)(index + 1) / hg.getLedCount();
-
-    Serial.println(dutyCycle);
     hg.setLedDutyCycle(index, dutyCycle / 2 + 0.25);
-    Serial.print(dutyCycle / 2 + 0.25);
     hg.setLedColor(index, COLOR_OPTIONS[(index + offset) % NUM_COLOR_OPTIONS]);
   }
   offset++;
@@ -336,9 +328,7 @@ void updateLedStrip() {
 }
 
 void hgStateMachine() {
-  // Serial.println(std::string(hg).c_str());
 
-  // TODO: add missing serial print information
   switch (currentState) {
   case INIT:
     if (Serial)
@@ -555,19 +545,20 @@ void setup() {
 
 void loop() {
   for (;;) {
+    // update buttons
     sGo.update();
     sUp.update();
     sDown.update();
 
-    // if(currentState != PAUSED)
-    //     hg.update();
-
+    // update hourglass internal logic
     hg.update();
 
     updateLedStrip();
 
+    // run the state machine logic
     hgStateMachine();
 
+    // 10ms delay used to prevent freewheeling
     delay(10);
   }
 }
