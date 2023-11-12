@@ -57,8 +57,8 @@ clang
 -I/home/dvalinn/.platformio/packages/framework-arduino-mbed/libraries/syntiant_ilib/src
 -I/home/dvalinn/.platformio/packages/toolchain-gccarmnoneeabi/arm-none-eabi/include/c++/9.2.1
 -I/home/dvalinn/.platformio/packages/toolchain-gccarmnoneeabi/arm-none-eabi/include/c++/9.2.1/arm-none-eabi
--I/home/dvalinn/.platformio/packages/toolchain-gccarmnoneeabi/lib/gcc/arm-none-eabi/9.2.1/include-fixed
 -I/home/dvalinn/.platformio/packages/toolchain-gccarmnoneeabi/lib/gcc/arm-none-eabi/9.2.1/include
+-I/home/dvalinn/.platformio/packages/toolchain-gccarmnoneeabi/lib/gcc/arm-none-eabi/9.2.1/include-fixed
 -I/home/dvalinn/.platformio/packages/toolchain-gccarmnoneeabi/arm-none-eabi/include
 
 -DPLATFORMIO=60111
