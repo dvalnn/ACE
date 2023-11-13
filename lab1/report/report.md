@@ -1,5 +1,16 @@
 # lab report
 
+## 1. Introduction
+
+The purpose of this lab work was to build a simple hourglass like electronic
+timer using a Raspberry Pi Pico and a 5 LED LED strip. This report goes over
+the constructive process of the project, the implemented functionalities and
+the design choices that were made. Additionally, it also includes an abridged
+look at the source code and its design philosophy.
+
+The complete source code for this project can be found at the following link:
+[ace lab1 github repository](https://github.com/dvalnn/ACE/tree/main/lab1).
+
 <!-- prettier-ignore-start -->
 
 <!--toc:start-->
@@ -25,17 +36,6 @@
 <!--toc:end-->
 
 <!-- prettier-ignore-end -->
-
-## 1. Introduction
-
-The purpose of this lab work was to build a simple hourglass like electronic
-timer using a Raspberry Pi Pico and a 5 LED LED strip. This report goes over
-the constructive process of the project, the implemented functionalities and
-the design choices that were made. Additionally, it also includes an abridged
-look at the source code and its design philosophy.
-
-The complete source code for this project can be found at the following link:
-[ace lab1 github repository](https://github.com/dvalnn/ACE/tree/main/lab1).
 
 ## 2. Diagrams
 
