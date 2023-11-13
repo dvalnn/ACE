@@ -280,24 +280,31 @@ void setup() {
   Serial.begin(9600);
 
   // Servo Pin Set
-  servo[0].attach(1);
+  servo[0].attach(0);
   /* servo[0].write(90 + servoCal[0]); */
-  servo[1].attach(2);
+  servo[1].attach(1);
   /* servo[1].write(90 + servoCal[1]); */
-  servo[2].attach(3);
+  servo[2].attach(2);
   /* servo[2].write(90 + servoCal[2]); */
-  servo[3].attach(4);
+  servo[3].attach(3);
   /* servo[3].write(90 + servoCal[3]); */
-  servo[4].attach(5);
+  servo[4].attach(4);
   /* servo[4].write(90 + servoCal[4]); */
-  servo[5].attach(6);
+  servo[5].attach(5);
   /* servo[5].write(90 + servoCal[5]); */
-  servo[6].attach(7);
+  servo[6].attach(6);
   /* servo[6].write(90 + servoCal[6]); */
-  servo[7].attach(8);
+  servo[7].attach(7);
   /* servo[7].write(90 + servoCal[7]); */
 
-  runServoPrg(servoPrg00, servoPrg00step); // zero position
+  servo[0].write(0);
+  servo[1].write(1);
+  servo[2].write(2);
+  servo[3].write(3);
+  servo[4].write(4);
+  servo[5].write(5);
+  servo[6].write(6);
+  servo[7].write(7);
 }
 
 // ----------------------------------------------------------------------------------------------------
