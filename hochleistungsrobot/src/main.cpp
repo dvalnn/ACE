@@ -20,6 +20,7 @@
 // Shield: Pico servo driver rev 2.1
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <Servo.h>
 
 // Custom value
@@ -298,13 +299,13 @@ void setup() {
   /* servo[7].write(90 + servoCal[7]); */
 
   servo[0].write(0);
-  servo[1].write(1);
-  servo[2].write(2);
-  servo[3].write(3);
-  servo[4].write(4);
-  servo[5].write(5);
-  servo[6].write(6);
-  servo[7].write(7);
+  servo[1].write(0);
+  servo[2].write(0);
+  servo[3].write(0);
+  servo[4].write(0);
+  servo[5].write(0);
+  servo[6].write(0);
+  servo[7].write(0);
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -312,8 +313,28 @@ void setup() {
 // Loop
 // ----------------------------------------------------------------------------------------------------
 
+// CALIBRATION
+// Servo 0 -> +1
+// Servo 1 -> +13
+// Servo 2 -> +10 (invert)
+// Servo 3 -> +7 (invert)
+
+#define INVERTED(X) ((X) * -1 + 180)
+#define SERVO_0_CALIB(X) (X + 1)
+#define SERVO_1_CALIB(X) (X + 13)
+#define SERVO_2_CALIB(X) INVERTED(X + 10)
+#define SERVO_3_CALIB(X) INVERTED(X + 7)
+
 void loop() {
-  runServoPrg(goForward, goForwardStep); // zero position
+  servo[0].write(SERVO_0_CALIB(97));
+  servo[1].write(SERVO_1_CALIB(95));
+  servo[2].write(SERVO_2_CALIB(100));
+  servo[3].write(SERVO_3_CALIB(100));
+  servo[4].write(0);
+  servo[5].write(180);
+  servo[6].write(90);
+  servo[7].write(90);
+  //* * runServoPrg(goForward, goForwardStep); // zero position */
 }
 
 // ----------------------------------------------------------------------------------------------------
