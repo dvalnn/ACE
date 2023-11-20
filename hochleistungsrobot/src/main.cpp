@@ -330,8 +330,8 @@ void loop() {
   servo[1].write(SERVO_1_CALIB(95));
   servo[2].write(SERVO_2_CALIB(100));
   servo[3].write(SERVO_3_CALIB(100));
-  servo[4].write(0);
-  servo[5].write(180);
+  servo[4].write(90);
+  servo[5].write(90);
   servo[6].write(90);
   servo[7].write(90);
   //* * runServoPrg(goForward, goForwardStep); // zero position */
