@@ -47,20 +47,20 @@ int autoMode = 0;
 // ----------------------------------------------------------------------------------------------------
 
 // Servo zero position
-int servoAct00[] PROGMEM =
+int servoAct00[] =
     // P10, P11, P12, P16, P02, P04, P07, P15
     {135, 45, 135, 45, 45, 135, 45, 135};
 
 // Zero
 int servoPrg00step = 1;
-int servoPrg00[][numberOfACE] PROGMEM = {
+int servoPrg00[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {135, 45, 135, 45, 45, 135, 45, 135, 1000}, // zero position
 };
 
 // Standby
 int servoPrg01step = 2;
-int servoPrg01[][numberOfACE] PROGMEM = {
+int servoPrg01[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {90, 90, 90, 90, 90, 90, 90, 90, 200}, // prep standby
     {-20, 0, 0, 20, 20, 0, 0, -20, 200},   // standby
@@ -68,7 +68,7 @@ int servoPrg01[][numberOfACE] PROGMEM = {
 
 // Forward
 int goForwardStep = 11;
-int goForward[][numberOfACE] PROGMEM = {
+int goForward[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {70, 90, 90, 110, 110, 90, 90, 70, 100}, // standby
     {20, 0, 0, 0, 0, 0, -45, 20, 100},       // leg1,4 up; leg4 fw
@@ -85,7 +85,7 @@ int goForward[][numberOfACE] PROGMEM = {
 
 // Backward
 int servoPrg03step = 11;
-int servoPrg03[][numberOfACE] PROGMEM = {
+int servoPrg03[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {70, 90, 90, 110, 110, 90, 90, 70, 100}, // standby
     {20, -45, 0, 0, 0, 0, 0, 20, 100},       // leg4,1 up; leg1 fw
@@ -102,7 +102,7 @@ int servoPrg03[][numberOfACE] PROGMEM = {
 
 // Move Left
 int servoPrg04step = 11;
-int servoPrg04[][numberOfACE] PROGMEM = {
+int servoPrg04[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {70, 90, 90, 110, 110, 90, 90, 70, 100}, // standby
     {0, 0, -45, -20, -20, 0, 0, 0, 100},     // leg3,2 up; leg2 fw
@@ -119,7 +119,7 @@ int servoPrg04[][numberOfACE] PROGMEM = {
 
 // Move Right
 int servoPrg05step = 11;
-int servoPrg05[][numberOfACE] PROGMEM = {
+int servoPrg05[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {70, 90, 90, 110, 110, 90, 90, 70, 100}, // standby
     {0, 0, 0, -20, -20, -45, 0, 0, 100},     // leg2,3 up; leg3 fw
@@ -136,7 +136,7 @@ int servoPrg05[][numberOfACE] PROGMEM = {
 
 // Turn left
 int servoPrg06step = 8;
-int servoPrg06[][numberOfACE] PROGMEM = {
+int servoPrg06[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {70, 90, 90, 110, 110, 90, 90, 70, 100}, // standby
     {20, 0, 0, 0, 0, 0, 0, 20, 100},         // leg1,4 up
@@ -150,7 +150,7 @@ int servoPrg06[][numberOfACE] PROGMEM = {
 
 // Turn right
 int servoPrg07step = 8;
-int servoPrg07[][numberOfACE] PROGMEM = {
+int servoPrg07[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {70, 90, 90, 110, 110, 90, 90, 70, 100}, // standby
     {0, 0, 0, -20, -20, 0, 0, 0, 100},       // leg2,3 up
@@ -164,14 +164,14 @@ int servoPrg07[][numberOfACE] PROGMEM = {
 
 // Lie
 int servoPrg08step = 1;
-int servoPrg08[][numberOfACE] PROGMEM = {
+int servoPrg08[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {110, 90, 90, 70, 70, 90, 90, 110, 500}, // leg1,4 up
 };
 
 // Say Hi
 int servoPrg09step = 4;
-int servoPrg09[][numberOfACE] PROGMEM = {
+int servoPrg09[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {120, 90, 90, 110, 60, 90, 90, 70, 200}, // leg1, 3 down
     {-50, 0, 0, 0, 50, 0, 0, 0, 200},        // standby
@@ -181,7 +181,7 @@ int servoPrg09[][numberOfACE] PROGMEM = {
 
 // Fighting
 int servoPrg10step = 11;
-int servoPrg10[][numberOfACE] PROGMEM = {
+int servoPrg10[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {120, 90, 90, 110, 60, 90, 90, 70, 200},     // leg1, 2 down
     {0, -20, -20, 0, 0, -20, -20, 0, 200},       // body turn left
@@ -198,7 +198,7 @@ int servoPrg10[][numberOfACE] PROGMEM = {
 
 // Push up
 int servoPrg11step = 11;
-int servoPrg11[][numberOfACE] PROGMEM = {
+int servoPrg11[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {70, 90, 90, 110, 110, 90, 90, 70, 300}, // start
     {30, 0, 0, -30, -30, 0, 0, 30, 400},     // down
@@ -215,7 +215,7 @@ int servoPrg11[][numberOfACE] PROGMEM = {
 
 // Sleep
 int servoPrg12step = 2;
-int servoPrg12[][numberOfACE] PROGMEM = {
+int servoPrg12[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {35, 90, 90, 145, 145, 90, 90, 35, 400}, // leg1,4 dn
     {0, -45, 45, 0, 0, 45, -45, 0, 400},     // protect myself
@@ -223,7 +223,7 @@ int servoPrg12[][numberOfACE] PROGMEM = {
 
 // Dancing 1
 int servoPrg13step = 10;
-int servoPrg13[][numberOfACE] PROGMEM = {
+int servoPrg13[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {90, 90, 90, 90, 90, 90, 90, 90, 300}, // leg1,2,3,4 up
     {-40, 0, 0, 0, 0, 0, 0, 0, 300},       // leg1 dn
@@ -239,7 +239,7 @@ int servoPrg13[][numberOfACE] PROGMEM = {
 
 // Dancing 2
 int servoPrg14step = 9;
-int servoPrg14[][numberOfACE] PROGMEM = {
+int servoPrg14[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {70, 45, 135, 110, 110, 135, 45, 70, 300}, // leg1,2,3,4 two sides
     {45, 0, 0, -45, 0, 0, 0, 0, 300},          // leg1,2 up
@@ -254,7 +254,7 @@ int servoPrg14[][numberOfACE] PROGMEM = {
 
 // Dancing 3
 int servoPrg15step = 10;
-int servoPrg15[][numberOfACE] PROGMEM = {
+int servoPrg15[][numberOfACE] = {
     // P10, P11, P12, P16, P02, P04, P07, P15,  ms
     {70, 45, 45, 110, 110, 135, 135, 70, 300}, // leg1,2,3,4 bk
     {40, 0, 0, -50, -40, 0, 0, 0, 300},        // leg1,2,3 up
