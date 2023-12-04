@@ -52,9 +52,9 @@ int servoPrg02[][numberOfACE] = {
     {0, 0, 0, -20, -20, 0, 0, 0, 100},   // leg2,3 dn
     {-20, -45, 0, 0, 0, 0, 0, -20, 100}, // leg1,4 up; leg1 fw
     {0, 0, 45, 0, 0, -45, 0, 0, 100},    // leg2,3 bk
-    {20, 0, 0, 0, 0, 0, 0, 20, 100},     // leg1,4 dn
-    {0, 0, 0, 0, 20, 0, 0, 0, 100},      // leg3 up
-    {0, 0, 0, 0, -20, -45, 0, 0, 100},   // leg3 fw dn
+    {20, 0, 0, 0, 0, 0, 0, -20, 100},    // leg1,4 dn
+    {0, 0, 0, 0, -20, 0, 0, 0, 100},     // leg3 up
+    {0, 0, 0, 0, 20, -45, 0, 0, 100},    // leg3 fw dn
 };
 
 // Backward
@@ -330,5 +330,5 @@ void setup() {
 }
 
 void loop() {
-  runServoPrg(servoPrg02, servoPrg02step); // forward
+  runServoPrgV(servoPrg02, servoPrg02step); // forward
 }
