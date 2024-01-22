@@ -31,22 +31,24 @@ const long interval = 500; // Interval for checking the sensor (in milliseconds)
 MPU6050 mpu(0x68); // MPU6050 object
 // MPU control/status vars
 bool dmpReady = false; // set true if DMP init was successful
-uint8_t devStatus; // return status after each device operation (0 = success, !
-                   // = error)
+uint8_t devStatus;     // return status after each device operation
+                       // (0 = success,!= error)
+
 uint16_t packetSize;    // expected DMP packet size (default is 42 bytes)
 uint16_t fifoCount;     // count of all bytes currently in FIFO
 uint8_t fifoBuffer[64]; // FIFO storage buffer
+
 // MPU orientation/motion vars
 Quaternion q;   // [w, x, y, z]         quaternion container
 VectorInt16 aa; // [x, y, z]            accel sensor measurements
-VectorInt16
-    aaReal; // [x, y, z]            gravity-free accel sensor measurements
-VectorInt16
-    aaWorld; // [x, y, z]            world-frame accel sensor measurements
-VectorFloat gravity; // [x, y, z]            gravity vector
-float euler[3];      // [psi, theta, phi]    Euler angle container
-float
-    ypr[3]; // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
+
+// gravity-free accel sensor measurements
+VectorInt16 aaReal;  // [x, y, z]
+VectorInt16 aaWorld; // [x, y, z] frame accel sensor measurements
+VectorFloat gravity; // [x, y, z] gravity vector
+
+float euler[3]; // [psi, theta, phi] Euler angle container
+float ypr[3]; // [yaw, pitch, roll] yaw/pitch/roll container and gravity vector
 
 // PID direction controller
 double Setpoint, directionAngle, Output;
@@ -362,9 +364,10 @@ void runServoPrg(int servoPrg[][numberOfACE], int step) {
       servoPos[s] = servo[s].read() - servoCal[s];
     }
 
-    for (int j = 0; j < totalTime / servoPrgPeriod;
-         j++) {                                  // Loop for time section
-      for (int k = 0; k < numberOfServos; k++) { // Loop for servo
+    // outer loop: time step
+    // inner loop: servo
+    for (int j = 0; j < totalTime / servoPrgPeriod; j++) {
+      for (int k = 0; k < numberOfServos; k++) {
         servo[k].write((map(j, 0, totalTime / servoPrgPeriod, servoPos[k],
                             servoPrg[i][k])) +
                        servoCal[k]);
@@ -385,7 +388,7 @@ void runServoPrgV(int servoPrg[][numberOfACE], int step) {
       servoPos[s] = servo[s].read() - servoCal[s];
     }
 
-    for (int p = 0; p < numberOfServos; p++) { // Loop for servo
+    for (int p = 0; p < numberOfServos; p++) {
       if (i == 0) {
         servoPrevPrg[p] = servoPrg[i][p];
       } else {
@@ -393,9 +396,10 @@ void runServoPrgV(int servoPrg[][numberOfACE], int step) {
       }
     }
 
-    for (int j = 0; j < totalTime / servoPrgPeriod;
-         j++) {                                  // Loop for time section
-      for (int k = 0; k < numberOfServos; k++) { // Loop for servo
+    // outer loop: time step
+    // inner loop: servo
+    for (int j = 0; j < totalTime / servoPrgPeriod; j++) {
+      for (int k = 0; k < numberOfServos; k++) {
         servo[k].write((map(j, 0, totalTime / servoPrgPeriod, servoPos[k],
                             servoPrevPrg[k]) +
                         servoCal[k]));
