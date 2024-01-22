@@ -15,6 +15,7 @@
 
 #include "I2Cdev.h"
 #include "MPU6050_6Axis_MotionApps20.h"
+#include "api/Common.h"
 #include <Arduino.h>
 #include <PID_v1.h>
 #include <Servo.h>
@@ -28,8 +29,8 @@ VL53L0X VL53L0X_sensor;    // VL53L0X object
 elapsedMillis timeElapsed; // Time elapsed since the last measurement
 const long interval = 500; // Interval for checking the sensor (in milliseconds)
 
-MPU6050 mpu(0x68); // MPU6050 object
 // MPU control/status vars
+MPU6050 mpu(0x68);     // MPU6050 object
 bool dmpReady = false; // set true if DMP init was successful
 uint8_t devStatus;     // return status after each device operation
                        // (0 = success,!= error)
@@ -565,36 +566,9 @@ void mpuGetValues() {
   climbAngle = ypr[2] * 180 / M_PI;
 }
 
-/////////////////////////////  Setup  /////////////////////////////////
-void setup() {
+/////////////////////////////  Main  /////////////////////////////////
 
-  Wire.begin();          // join i2c bus
-  Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having
-                         // compilation difficulties
-
-  Serial.begin(115200); // initialize serial communication
-
-  servoSetup(); // servo setup
-
-  delay(2000); // wait for 3 seconds
-
-  runServoPrg(Zero, ZeroStep); // zero position
-
-  delay(2000);
-
-  sensorSetup(); // sensor setup
-
-  mpuSetup(); // mpu setup
-
-  PIDSetup(); // PID setup
-
-  PID2Setup(); // PID2 setup
-}
-
-/////////////////////////////  Loop  /////////////////////////////////
-
-void loop() {
-
+void run() {
   mpuGetValues(); // get values from mpu
   // if programming failed, don't try to do anything
   if (!dmpReady)
@@ -732,4 +706,48 @@ void loop() {
     break;
   }
 }
+
+////////////////////////////// Test /////////////////////////////////
+
+void test_mpu() {
+  while (1) {
+    mpuGetValues(); // get values from mpu
+    Serial.print("Direction angle : ");
+    Serial.println(directionAngle);
+    Serial.print("Climb angle : ");
+    Serial.println(climbAngle);
+    delay(1000);
+  }
+}
+
+/////////////////////////////  Setup  /////////////////////////////////
+
+void setup() {
+
+  Wire.begin(); // join i2c bus
+  /* Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having */
+  // compilation difficulties
+
+  Serial.begin(115200); // initialize serial communication
+
+  /* servoSetup(); // servo setup */
+
+  delay(3000); // wait for 3 seconds
+  /**/
+  /* runServoPrg(Zero, ZeroStep); // zero position */
+  /**/
+  delay(2000);
+
+  /* sensorSetup(); // sensor setup */
+
+  mpuSetup(); // mpu setup
+
+  /* PIDSetup(); // PID setup */
+
+  /* PID2Setup(); // PID2 setup */
+}
+/////////////////////////////  Loop  ////////////////////////////////
+
+void loop() { test_mpu(); }
+
 /////////////////////////////  End  /////////////////////////////////
