@@ -455,6 +455,8 @@ void mpuSetup() {
   }
   Serial.println("MPU6050 Found!");
 
+  delay(300);
+
   // load and configure the DMP
   Serial.println(F("Initializing DMP..."));
   devStatus = mpu.dmpInitialize();
