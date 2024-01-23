@@ -572,42 +572,45 @@ void ClimbUpdate() {
 
 /////////////////////////////  Main  /////////////////////////////////
 
+void pid_calculate() {
+  switch (currentState) {
+
+  case Front:
+    Setpoint = 0;
+    break;
+
+  case Right:
+    Setpoint = 90;
+    break;
+
+  case Left:
+    Setpoint = -90;
+    break;
+
+  case Stair:
+    // Stair uses a different PID
+    break;
+  }
+
+  mpu_getValues(); // get values from mpu
+
+  pid_walking.Compute();  // compute PID
+  pid_climbing.Compute(); // compute PID2
+
+  ClimbUpdate(); // update climb
+  MoveUpdate();  // update move
+}
+
 void run() {
   // if programming failed, don't try to do anything
   if (!dmpReady)
     return;
 
-  mpu_getValues(); // get values from mpu
+  pid_calculate();
 
   switch (currentState) {
-
   case Front:
-    break;
-
-  case Right:
-    break;
-
-  case Left:
-    break;
-
-  case Stair:
-    break;
-  }
-
-  switch (currentState) {
-
-  case Front:
-
-    Setpoint = 0;
-    pid_walking.Compute();  // compute PID
-    pid_climbing.Compute(); // compute PID2
-
-    ClimbUpdate(); // update climb
-    MoveUpdate();  // update move
-
     runServoPrgV(Forward, ForwardStep); // move forward
-
-    mpu_getValues(); // get values from mpu
 
     // Serial.print("Climb angle : ");
     // Serial.println(climbAngle);
@@ -620,7 +623,6 @@ void run() {
           runServoPrgV(Backward, BackwardStep); // move backward
           while (mpu_directionAngle < 75) {
             runServoPrgV(Turnright, TurnrightStep); // turn right
-            mpu_getValues();                        // get values from mpu
           }
           currentState = Right;
         }
@@ -628,7 +630,6 @@ void run() {
           runServoPrgV(Backward, BackwardStep); // move backward
           while (mpu_directionAngle > -75) {
             runServoPrgV(Turnleft, TurnleftStep); // turn left
-            mpu_getValues();                      // get values from mpu
           }
           currentState = Left;
         }
@@ -638,12 +639,6 @@ void run() {
     break;
 
   case Right:
-
-    Setpoint = 90;
-    pid_walking.Compute();  // compute PID
-    pid_climbing.Compute(); // compute PID2
-    ClimbUpdate();          // update climb
-
     for (int i = 0; i < 7; i++) {
       if (vl53_checkForObstacle() == 0) {
         mpu_getValues();                    // get values from mpu
@@ -665,12 +660,6 @@ void run() {
     break;
 
   case Left:
-
-    Setpoint = -90;
-    pid_walking.Compute();  // compute PID
-    pid_climbing.Compute(); // compute PID2
-    ClimbUpdate();          // update climb
-
     for (int i = 0; i < 7; i++) {
       if (vl53_checkForObstacle() == 0) {
         mpu_getValues();       // get values from mpu
@@ -684,7 +673,6 @@ void run() {
 
     while (mpu_directionAngle > 15 || mpu_directionAngle < -15) {
       runServoPrgV(Turnright, TurnrightStep); // turn right
-      mpu_getValues();                        // get values from mpu
       side = 0;
     }
 
@@ -715,16 +703,10 @@ void run() {
     //   break;
 
   case Stair:
-
-    mpu_getValues();       // get values from mpu
-    pid_walking.Compute(); // compute PID
-
-    MoveUpdate();
     runServoPrgV(Forward, ForwardStep); // move forward
     runServoPrgV(Climb, ClimbStep);     // climb stair
 
     currentState = Front;
-
     break;
   }
 }
