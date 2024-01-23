@@ -548,6 +548,8 @@ void servoSetup() {
   servo[7].write(90 + servoCal[7]);
 }
 
+/////////////////////////////  Main  /////////////////////////////////
+
 // Direction Update
 void MoveUpdate() {
   aux_direction = Output;
@@ -569,8 +571,6 @@ void ClimbUpdate() {
   Forward[0][4] = 150 - aux_climb;
   Forward[0][7] = 30 - aux_climb;
 }
-
-/////////////////////////////  Main  /////////////////////////////////
 
 void pid_calculate() {
   switch (currentState) {
@@ -612,8 +612,6 @@ void run() {
   case Front:
     runServoPrgV(Forward, ForwardStep); // move forward
 
-    // Serial.print("Climb angle : ");
-    // Serial.println(climbAngle);
     if ((vl53_checkForObstacle() == 1 && mpu_climbAngle < 2)) {
       runServoPrgV(Checkup, CheckupStep); // checkup
       if (vl53_checkForObstacle() == 0) {
@@ -635,7 +633,6 @@ void run() {
         }
       }
     }
-
     break;
 
   case Right:
@@ -656,7 +653,6 @@ void run() {
       side = 1;
     }
     currentState = Front;
-
     break;
 
   case Left:
@@ -677,30 +673,7 @@ void run() {
     }
 
     currentState = Front;
-
     break;
-
-    // case Back:
-    //   if(ypr[0] * 180/M_PI > 0 && ypr[0] * 180/M_PI < 180){
-    //     Setpoint = 180;
-    //   }
-    //   else if(ypr[0] * 180/M_PI < 0 && ypr[0] * 180/M_PI > -180){
-    //     Setpoint = -180;
-    //   }
-    //   myPID.Compute(); //compute PID
-    //   myPID2.Compute(); //compute PID2
-    //   ClimbUpdate(); //update climb
-    //   MoveUpdate();
-    //   runServoPrgV(Forward, ForwardStep); //move forward
-    //   if(sensor() == 1){
-    //     runServoPrgV(Backward, BackwardStep); //move backward
-    //     for(int i=0; i<5; i++){
-    //       runServoPrgV(servoPrg07, servoPrg07step); //turn right
-    //     }
-    //     //side = 0;
-    //     currentState = Left;
-    //   }
-    //   break;
 
   case Stair:
     runServoPrgV(Forward, ForwardStep); // move forward
@@ -715,8 +688,7 @@ void run() {
 
 void setup() {
   Wire.begin();          // join i2c bus
-  Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having
-  // compilation difficulties
+  Wire.setClock(400000); // 400kHz I2C clock.
 
   Serial.begin(115200); // initialize serial communication
 
@@ -728,9 +700,9 @@ void setup() {
   /**/
   delay(2000);
 
-  /* sensorSetup(); // sensor setup */
+  vl53_setup(); // vl53 setup
 
-  /* mpuSetup(); // mpu setup */
+  /* mpu_setup(); // mpu setup */
 
   /* PIDSetup(); // PID setup */
 
@@ -740,7 +712,7 @@ void setup() {
 /////////////////////////////  Loop  ////////////////////////////////
 
 void loop() {
-  mpu_testDebug();
+  /* mpu_testDebug(); */
   delay(1000);
 }
 
