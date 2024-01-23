@@ -692,17 +692,17 @@ void setup() {
 
   Serial.begin(115200); // initialize serial communication
 
-  /* servoSetup(); // servo setup */
+  servoSetup(); // servo setup
 
   delay(3000); // wait for 3 seconds
   /**/
-  /* runServoPrg(Zero, ZeroStep); // zero position */
+  runServoPrg(Zero, ZeroStep); // zero position
   /**/
   delay(2000);
 
   vl53_setup(); // vl53 setup
 
-  /* mpu_setup(); // mpu setup */
+  mpu_setup(); // mpu setup
 
   /* PIDSetup(); // PID setup */
 
@@ -712,7 +712,8 @@ void setup() {
 /////////////////////////////  Loop  ////////////////////////////////
 
 void loop() {
-  /* mpu_testDebug(); */
+  mpu_testDebug();
+  vl53_testDebug();
   delay(1000);
 }
 
