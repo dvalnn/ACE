@@ -21,45 +21,8 @@
 #include <Servo.h>
 #include <VL53L0X.h>
 #include <Wire.h>
+#include <cstdint>
 #include <elapsedMillis.h>
-
-#define MAX_DISTANCE 135 // Maximum distance in milimeters
-
-VL53L0X VL53L0X_sensor;    // VL53L0X object
-elapsedMillis timeElapsed; // Time elapsed since the last measurement
-const long interval = 500; // Interval for checking the sensor (in milliseconds)
-
-// MPU control/status vars
-MPU6050 mpu(0x68);     // MPU6050 object
-bool dmpReady = false; // set true if DMP init was successful
-uint8_t devStatus;     // return status after each device operation
-                       // (0 = success,!= error)
-
-uint16_t packetSize;    // expected DMP packet size (default is 42 bytes)
-uint16_t fifoCount;     // count of all bytes currently in FIFO
-uint8_t fifoBuffer[64]; // FIFO storage buffer
-
-// MPU orientation/motion vars
-Quaternion q;   // [w, x, y, z]         quaternion container
-VectorInt16 aa; // [x, y, z]            accel sensor measurements
-
-// gravity-free accel sensor measurements
-VectorInt16 aaReal;  // [x, y, z]
-VectorInt16 aaWorld; // [x, y, z] frame accel sensor measurements
-VectorFloat gravity; // [x, y, z] gravity vector
-
-float euler[3]; // [psi, theta, phi] Euler angle container
-float ypr[3]; // [yaw, pitch, roll] yaw/pitch/roll container and gravity vector
-
-// PID direction controller
-double Setpoint, directionAngle, Output;
-const double Kp = 0.8, Ki = 5, Kd = 0;
-PID myPID(&directionAngle, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
-
-// PID climb controller
-double Setpoint2, climbAngle, Output2;
-const double Kp2 = 1.4, Ki2 = 0.5, Kd2 = 0;
-PID myPID2(&climbAngle, &Output2, &Setpoint2, Kp2, Ki2, Kd2, DIRECT);
 
 typedef enum { // State machine states
   Front,
@@ -410,77 +373,109 @@ void runServoPrgV(int servoPrg[][numberOfACE], int step) {
   }
 }
 
-// check sensor
-int sensor() {
-  int flag = 0; // Flag to indicate if an object is detected
-  if (timeElapsed >= interval) {
-    timeElapsed = 0;
+/////////////////////////////  PID Controlers ///////////////////////////////
 
-    // Perform the sensor reading
-    uint16_t distance = VL53L0X_sensor.readRangeSingleMillimeters();
-    // Check if an object is detected within the specified range
-    if (distance > 0 && distance < MAX_DISTANCE) {
-      // Object detected, set the flag to 1
-      flag = 1;
-    } else {
-      // No object detected, set the flag to 0
-      flag = 0;
-    }
+// PID direction controller
+double Setpoint, mpu_directionAngle, Output;
+const double Kp = 0.8, Ki = 5, Kd = 0;
+PID pid_walking(&mpu_directionAngle, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
-    // Print the distance and flag status
-    Serial.print("Distance: ");
-    Serial.print(distance);
-    Serial.print(" mm, Flag: ");
-    Serial.println(flag);
-  }
-  return flag;
+// PID climb controller
+double Setpoint2, mpu_climbAngle, Output2;
+const double Kp2 = 1.4, Ki2 = 0.5, Kd2 = 0;
+PID pid_climbing(&mpu_climbAngle, &Output2, &Setpoint2, Kp2, Ki2, Kd2, DIRECT);
+
+// PID Direction Setup
+void PIDSetup() {
+  // turn the PID on
+  pid_walking.SetMode(AUTOMATIC);
+  pid_walking.SetOutputLimits(-30, 30); // set the output limits
+  pid_walking.SetSampleTime(10);        // refresh rate
+  pid_walking.SetTunings(Kp, Ki, Kd);   // set PID gains
+  Setpoint = 0;                         // setpoint
 }
+
+// PID Climb Setup
+void PID2Setup() {
+  // turn the PID on
+  pid_climbing.SetMode(AUTOMATIC);
+  pid_climbing.SetOutputLimits(-20, 20);  // set the output limits
+  pid_climbing.SetSampleTime(10);         // refresh rate
+  pid_climbing.SetTunings(Kp2, Ki2, Kd2); // set PID gains
+  Setpoint2 = 0;
+}
+
+/////////////////////////////  VL53L0X Sensor ///////////////////////////////
+
+VL53L0X vl53_sensor; // VL53L0X object
+elapsedMillis vl53_lastSampleTime;
+const long vl53_samplePeriodMs = 500;
+const int vl53_distanceThreshold = 135;
 
 // sensorSetup
-void sensorSetup() {
+void vl53_setup() {
   // Initialize the sensor
-  if (!VL53L0X_sensor.init(0x29)) {
+  if (!vl53_sensor.init(0x29)) {
     Serial.println("Failed to detect and initialize sensor!");
+    return;
   }
   Serial.println("VL53L0X sensor detected!");
-  VL53L0X_sensor.setTimeout(500);
+  vl53_sensor.setTimeout(500);
 }
 
-// mpuSetup
-void mpuSetup() {
+// check sensor
+bool vl53_checkForObstacle() {
+  if (vl53_lastSampleTime < vl53_samplePeriodMs)
+    return false;
 
+  vl53_lastSampleTime = 0;
+
+  uint16_t distance = vl53_sensor.readRangeSingleMillimeters();
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.print(" mm");
+
+  // Perform the sensor reading
+  // Check if an object is detected within the specified range
+  if (distance > 0 && distance < vl53_distanceThreshold) {
+    // Object detected, set the flag to 1
+    Serial.println(" - Object Detected");
+    return true;
+  }
+
+  return false;
+}
+
+void vl53_testDebug() {
+  uint16_t distance = vl53_sensor.readRangeSingleMillimeters();
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.print(" mm");
+}
+
+/////////////////////////////  MPU6050  ////////////////////////////////////
+
+// MPU control/status vars
+MPU6050 mpu(0x68);     // MPU6050 object
+uint16_t packetSize;   // expected DMP packet size (default is 42 bytes)
+bool dmpReady = false; // set true if DMP init was successful
+
+// mpuSetup
+void mpu_setup() {
   mpu.initialize(); // initialize MPU6050
   if (!mpu.testConnection()) {
     Serial.println("Failed to find MPU6050 chip");
+    return;
   }
+
   Serial.println("MPU6050 Found!");
 
   // load and configure the DMP
   Serial.println(F("Initializing DMP..."));
-  devStatus = mpu.dmpInitialize();
-
-  // supply your own gyro offsets here, uncomment if you want to manually set
-  // offsets
-  // mpu.setXAccelOffset(1047);
-  // mpu.setYAccelOffset(873);
-  // mpu.setZAccelOffset(1369);
-  // mpu.setXGyroOffset(133);
-  // mpu.setYGyroOffset(-86);
-  // mpu.setZGyroOffset(-12);
+  uint8_t devStatus = mpu.dmpInitialize();
 
   // make sure it worked (returns 0 if so)
-  if (devStatus == 0) {
-    // Calibration Time: generate offsets and calibrate our MPU6050
-    mpu.CalibrateAccel(20);
-    mpu.CalibrateGyro(20);
-    mpu.PrintActiveOffsets();
-    // turn on the DMP, now that it's ready
-    Serial.println(F("Enabling DMP..."));
-    mpu.setDMPEnabled(true);
-    dmpReady = true;
-
-    packetSize = mpu.dmpGetFIFOPacketSize();
-  } else {
+  if (devStatus != 0) {
     // ERROR!
     // 1 = initial memory load failed
     // 2 = DMP configuration updates failed
@@ -488,8 +483,46 @@ void mpuSetup() {
     Serial.print(F("DMP Initialization failed (code "));
     Serial.print(devStatus);
     Serial.println(F(")"));
+    return;
   }
+
+  // Calibration Time: generate offsets and calibrate our MPU6050
+  mpu.CalibrateAccel(20);
+  mpu.CalibrateGyro(20);
+  mpu.PrintActiveOffsets();
+  // turn on the DMP, now that it's ready
+  Serial.println(F("Enabling DMP..."));
+  mpu.setDMPEnabled(true);
+  dmpReady = true;
+
+  packetSize = mpu.dmpGetFIFOPacketSize();
 }
+
+// read mpu values
+void mpu_getValues() {
+  uint8_t fifoBuffer[64]; // FIFO storage buffer
+  Quaternion q;           // [w, x, y, z]
+  VectorFloat gravity;    // [x, y, z]
+  float ypr[3];           // [yaw, pitch, roll]
+
+  mpu.dmpGetCurrentFIFOPacket(fifoBuffer); // read a packet from FIFO
+  mpu.dmpGetQuaternion(&q, fifoBuffer);
+  mpu.dmpGetGravity(&gravity, &q);
+  mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+
+  mpu_directionAngle = ypr[0] * 180 / M_PI;
+  mpu_climbAngle = ypr[2] * 180 / M_PI;
+}
+
+void mpu_testDebug() {
+  mpu_getValues(); // get values from mpu
+  Serial.print("Direction angle : ");
+  Serial.println(mpu_directionAngle);
+  Serial.print("Climb angle : ");
+  Serial.println(mpu_climbAngle);
+}
+
+/////////////////////////////  Servo  ////////////////////////////////////
 
 // servoSetup
 void servoSetup() {
@@ -511,26 +544,6 @@ void servoSetup() {
   servo[5].write(90 + servoCal[5]);
   servo[6].write(90 + servoCal[6]);
   servo[7].write(90 + servoCal[7]);
-}
-
-// PID Direction Setup
-void PIDSetup() {
-  // turn the PID on
-  myPID.SetMode(AUTOMATIC);
-  myPID.SetOutputLimits(-30, 30); // set the output limits
-  myPID.SetSampleTime(10);        // refresh rate
-  myPID.SetTunings(Kp, Ki, Kd);   // set PID gains
-  Setpoint = 0;                   // setpoint
-}
-
-// PID Climb Setup
-void PID2Setup() {
-  // turn the PID on
-  myPID2.SetMode(AUTOMATIC);
-  myPID2.SetOutputLimits(-20, 20);  // set the output limits
-  myPID2.SetSampleTime(10);         // refresh rate
-  myPID2.SetTunings(Kp2, Ki2, Kd2); // set PID gains
-  Setpoint2 = Setpoint;             // setpoint
 }
 
 // Direction Update
@@ -555,58 +568,65 @@ void ClimbUpdate() {
   Forward[0][7] = 30 - aux_climb;
 }
 
-// read mpu values
-void mpuGetValues() {
-  mpu.dmpGetCurrentFIFOPacket(fifoBuffer); // read a packet from FIFO
-  mpu.dmpGetQuaternion(&q, fifoBuffer);
-  mpu.dmpGetGravity(&gravity, &q);
-  mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-
-  directionAngle = ypr[0] * 180 / M_PI;
-  climbAngle = ypr[2] * 180 / M_PI;
-}
-
 /////////////////////////////  Main  /////////////////////////////////
 
 void run() {
-  mpuGetValues(); // get values from mpu
   // if programming failed, don't try to do anything
   if (!dmpReady)
     return;
+
+  mpu_getValues(); // get values from mpu
+
+  switch (currentState) {
+
+  case Front:
+    break;
+
+  case Right:
+    break;
+
+  case Left:
+    break;
+
+  case Stair:
+    break;
+  }
 
   switch (currentState) {
 
   case Front:
 
     Setpoint = 0;
-    myPID.Compute();  // compute PID
-    myPID2.Compute(); // compute PID2
+    pid_walking.Compute();  // compute PID
+    pid_climbing.Compute(); // compute PID2
 
-    ClimbUpdate();                      // update climb
-    MoveUpdate();                       // update move
+    ClimbUpdate(); // update climb
+    MoveUpdate();  // update move
+
     runServoPrgV(Forward, ForwardStep); // move forward
 
-    mpuGetValues(); // get values from mpu
+    mpu_getValues(); // get values from mpu
+
     // Serial.print("Climb angle : ");
     // Serial.println(climbAngle);
-    if ((sensor() == 1 && climbAngle < 2)) {
+    if ((vl53_checkForObstacle() == 1 && mpu_climbAngle < 2)) {
       runServoPrgV(Checkup, CheckupStep); // checkup
-      if (sensor() == 0) {
+      if (vl53_checkForObstacle() == 0) {
         currentState = Stair;
       } else {
         if (side == 0) {
           runServoPrgV(Backward, BackwardStep); // move backward
-          while (directionAngle < 75) {
+          while (mpu_directionAngle < 75) {
             runServoPrgV(Turnright, TurnrightStep); // turn right
-            mpuGetValues();                         // get values from mpu
+            mpu_getValues();                        // get values from mpu
           }
           currentState = Right;
         }
         if (side == 1) {
           runServoPrgV(Backward, BackwardStep); // move backward
-          while (directionAngle > -75) {
+          while (mpu_directionAngle > -75) {
             runServoPrgV(Turnleft, TurnleftStep); // turn left
-            mpuGetValues();                       // get values from mpu
+            mpu_getValues();                      // get values from mpu
           }
           currentState = Left;
         }
@@ -618,14 +638,14 @@ void run() {
   case Right:
 
     Setpoint = 90;
-    myPID.Compute();  // compute PID
-    myPID2.Compute(); // compute PID2
-    ClimbUpdate();    // update climb
+    pid_walking.Compute();  // compute PID
+    pid_climbing.Compute(); // compute PID2
+    ClimbUpdate();          // update climb
 
     for (int i = 0; i < 7; i++) {
-      if (sensor() == 0) {
-        mpuGetValues();                     // get values from mpu
-        myPID.Compute();                    // compute PID
+      if (vl53_checkForObstacle() == 0) {
+        mpu_getValues();                    // get values from mpu
+        pid_walking.Compute();              // compute PID
         MoveUpdate();                       // update move
         runServoPrgV(Forward, ForwardStep); // move forward
       } else {
@@ -633,9 +653,9 @@ void run() {
       }
     }
 
-    while (directionAngle > 15 || directionAngle < -15) {
+    while (mpu_directionAngle > 15 || mpu_directionAngle < -15) {
       runServoPrgV(Turnleft, TurnleftStep); // turn left
-      mpuGetValues();                       // get values from mpu
+      mpu_getValues();                      // get values from mpu
       side = 1;
     }
     currentState = Front;
@@ -645,14 +665,14 @@ void run() {
   case Left:
 
     Setpoint = -90;
-    myPID.Compute();  // compute PID
-    myPID2.Compute(); // compute PID2
-    ClimbUpdate();    // update climb
+    pid_walking.Compute();  // compute PID
+    pid_climbing.Compute(); // compute PID2
+    ClimbUpdate();          // update climb
 
     for (int i = 0; i < 7; i++) {
-      if (sensor() == 0) {
-        mpuGetValues();  // get values from mpu
-        myPID.Compute(); // compute PID
+      if (vl53_checkForObstacle() == 0) {
+        mpu_getValues();       // get values from mpu
+        pid_walking.Compute(); // compute PID
         MoveUpdate();
         runServoPrgV(Forward, ForwardStep); // move forward
       } else {
@@ -660,9 +680,9 @@ void run() {
       }
     }
 
-    while (directionAngle > 15 || directionAngle < -15) {
+    while (mpu_directionAngle > 15 || mpu_directionAngle < -15) {
       runServoPrgV(Turnright, TurnrightStep); // turn right
-      mpuGetValues();                         // get values from mpu
+      mpu_getValues();                        // get values from mpu
       side = 0;
     }
 
@@ -694,8 +714,8 @@ void run() {
 
   case Stair:
 
-    mpuGetValues();  // get values from mpu
-    myPID.Compute(); // compute PID
+    mpu_getValues();       // get values from mpu
+    pid_walking.Compute(); // compute PID
 
     MoveUpdate();
     runServoPrgV(Forward, ForwardStep); // move forward
@@ -707,25 +727,11 @@ void run() {
   }
 }
 
-////////////////////////////// Test /////////////////////////////////
-
-void test_mpu() {
-  while (1) {
-    mpuGetValues(); // get values from mpu
-    Serial.print("Direction angle : ");
-    Serial.println(directionAngle);
-    Serial.print("Climb angle : ");
-    Serial.println(climbAngle);
-    delay(1000);
-  }
-}
-
 /////////////////////////////  Setup  /////////////////////////////////
 
 void setup() {
-
-  Wire.begin(); // join i2c bus
-  /* Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having */
+  Wire.begin();          // join i2c bus
+  Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having
   // compilation difficulties
 
   Serial.begin(115200); // initialize serial communication
@@ -740,14 +746,18 @@ void setup() {
 
   /* sensorSetup(); // sensor setup */
 
-  mpuSetup(); // mpu setup
+  /* mpuSetup(); // mpu setup */
 
   /* PIDSetup(); // PID setup */
 
   /* PID2Setup(); // PID2 setup */
 }
+
 /////////////////////////////  Loop  ////////////////////////////////
 
-void loop() { test_mpu(); }
+void loop() {
+  mpu_testDebug();
+  delay(1000);
+}
 
 /////////////////////////////  End  /////////////////////////////////
