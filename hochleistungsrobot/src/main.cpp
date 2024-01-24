@@ -1,18 +1,3 @@
-// Spider_mini (Top View)
-//  -----     Front     -----
-// |  L4 |             |  L1 |
-// | GP6 |             | GP0 |
-//  ----- -----   ----- -----
-//       |     | |     |
-//       | GP7 | | GP1 |
-//        -----   -----
-//       |     | |     |
-//       | GP8 | | GP2 |
-//  ----- -----   ----- -----
-// |  L4 |             |  L2 |
-// | GP9 |             | GP3 |
-//  -----               -----
-
 #include <Arduino.h>
 #include <I2Cdev.h>
 #include <MPU6050_6Axis_MotionApps20.h>
@@ -143,8 +128,9 @@ void PID2Setup() {
 
 VL53L0X vl53_sensor; // VL53L0X object
 elapsedMillis vl53_lastSampleTime;
-const long vl53_samplePeriodMs = 500;
-const int vl53_distanceThreshold = 135;
+
+const long vl53_SAMPLE_PERIOD_MS = 500;
+const int vl53_DET_THRESH = 200;
 
 // sensorSetup
 void vl53_setup() {
@@ -159,21 +145,13 @@ void vl53_setup() {
 
 // check sensor
 bool vl53_checkForObstacle() {
-  if (vl53_lastSampleTime < vl53_samplePeriodMs)
+  if (vl53_lastSampleTime < vl53_SAMPLE_PERIOD_MS)
     return false;
 
   vl53_lastSampleTime = 0;
 
   uint16_t distance = vl53_sensor.readRangeSingleMillimeters();
-  Serial.print("Distance: ");
-  Serial.print(distance);
-  Serial.print(" mm");
-
-  // Perform the sensor reading
-  // Check if an object is detected within the specified range
-  if (distance > 0 && distance < vl53_distanceThreshold) {
-    // Object detected, set the flag to 1
-    Serial.println(" - Object Detected");
+  if (distance > 0 && distance < vl53_DET_THRESH) {
     return true;
   }
 
@@ -285,7 +263,7 @@ void servoSetup() {
 /////////////////////////////  Main  /////////////////////////////////
 
 // Direction Update
-void compensateMoveForward() {
+void compensateDirection() {
   aux_direction = Output;
   movements.forward[4][1] = -45 + aux_direction;
   movements.forward[6][1] = 45 - aux_direction;
@@ -298,7 +276,7 @@ void compensateMoveForward() {
 }
 
 // Climb Update
-void ClimbUpdate() {
+void compensateElevation() {
   aux_climb = Output2;
   movements.forward[0][0] = 30 + aux_climb;
   movements.forward[0][3] = 150 + aux_climb;
@@ -306,117 +284,99 @@ void ClimbUpdate() {
   movements.forward[0][7] = 30 - aux_climb;
 }
 
-void pid_calculate() {
-  switch (currentState) {
-
-  case Front:
-    Setpoint = 0;
-    break;
-
-  case Right:
-    Setpoint = 90;
-    break;
-
-  case Left:
-    Setpoint = -90;
-    break;
-
-  case Stair:
-    // Stair uses a different PID
-    break;
-  }
+void pid_compensate() {
 
   mpu_getValues(); // get values from mpu
 
   pid_walking.Compute();  // compute PID
   pid_climbing.Compute(); // compute PID2
 
-  ClimbUpdate();           // update climb
-  compensateMoveForward(); // update move
+  compensateElevation(); // update climb
+  compensateDirection(); // update move
 }
 
-/* void run() { */
-/*   // if programming failed, don't try to do anything */
-/*   if (!dmpReady) */
-/*     return; */
-/**/
-/*   pid_calculate(); */
-/**/
-/*   switch (currentState) { */
-/*   case Front: */
-/*     runServoPrgV(Forward, ForwardStep); // move forward */
-/**/
-/*     if ((vl53_checkForObstacle() == 1 && mpu_climbAngle < 2)) { */
-/*       runServoPrgV(Checkup, CheckupStep); // checkup */
-/*       if (vl53_checkForObstacle() == 0) { */
-/*         currentState = Stair; */
-/*       } else { */
-/*         if (side == 0) { */
-/*           runServoPrgV(Backward, BackwardStep); // move backward */
-/*           while (mpu_directionAngle < 75) { */
-/*             runServoPrgV(Turnright, TurnrightStep); // turn right */
-/*           } */
-/*           currentState = Right; */
-/*         } */
-/*         if (side == 1) { */
-/*           runServoPrgV(Backward, BackwardStep); // move backward */
-/*           while (mpu_directionAngle > -75) { */
-/*             runServoPrgV(Turnleft, TurnleftStep); // turn left */
-/*           } */
-/*           currentState = Left; */
-/*         } */
-/*       } */
-/*     } */
-/*     break; */
-/**/
-/*   case Right: */
-/*     for (int i = 0; i < 7; i++) { */
-/*       if (vl53_checkForObstacle() == 0) { */
-/*         mpu_getValues();                    // get values from mpu */
-/*         pid_walking.Compute();              // compute PID */
-/*         compensateMoveForward();            // update move */
-/*         runServoPrgV(Forward, ForwardStep); // move forward */
-/*       } else { */
-/*         break; */
-/*       } */
-/*     } */
-/**/
-/*     while (mpu_directionAngle > 15 || mpu_directionAngle < -15) { */
-/*       runServoPrgV(Turnleft, TurnleftStep); // turn left */
-/*       mpu_getValues();                      // get values from mpu */
-/*       side = 1; */
-/*     } */
-/*     currentState = Front; */
-/*     break; */
-/**/
-/*   case Left: */
-/*     for (int i = 0; i < 7; i++) { */
-/*       if (vl53_checkForObstacle() == 0) { */
-/*         mpu_getValues();       // get values from mpu */
-/*         pid_walking.Compute(); // compute PID */
-/*         compensateMoveForward(); */
-/*         runServoPrgV(Forward, ForwardStep); // move forward */
-/*       } else { */
-/*         break; */
-/*       } */
-/*     } */
-/**/
-/*     while (mpu_directionAngle > 15 || mpu_directionAngle < -15) { */
-/*       runServoPrgV(Turnright, TurnrightStep); // turn right */
-/*       side = 0; */
-/*     } */
-/**/
-/*     currentState = Front; */
-/*     break; */
-/**/
-/*   case Stair: */
-/*     runServoPrgV(Forward, ForwardStep); // move forward */
-/*     runServoPrgV(Climb, ClimbStep);     // climb stair */
-/**/
-/*     currentState = Front; */
-/*     break; */
-/*   } */
-/* } */
+void run() {
+  /* // if programming failed, don't try to do anything */
+  /* if (!dmpReady) */
+  /*   return; */
+  /**/
+  /* pid_calculate(); */
+  /**/
+  /* switch (currentState) { */
+  /* case Front: */
+  /*   runServoPrgV(Forward, ForwardStep); // move forward */
+  /**/
+  /*   if ((vl53_checkForObstacle() == 1 && mpu_climbAngle < 2)) { */
+  /*     runServoPrgV(Checkup, CheckupStep); // checkup */
+  /*     if (vl53_checkForObstacle() == 0) { */
+  /*       currentState = Stair; */
+  /*     } else { */
+  /*       if (side == 0) { */
+  /*         runServoPrgV(Backward, BackwardStep); // move backward */
+  /*         while (mpu_directionAngle < 75) { */
+  /*           runServoPrgV(Turnright, TurnrightStep); // turn right */
+  /*         } */
+  /*         currentState = Right; */
+  /*       } */
+  /*       if (side == 1) { */
+  /*         runServoPrgV(Backward, BackwardStep); // move backward */
+  /*         while (mpu_directionAngle > -75) { */
+  /*           runServoPrgV(Turnleft, TurnleftStep); // turn left */
+  /*         } */
+  /*         currentState = Left; */
+  /*       } */
+  /*     } */
+  /*   } */
+  /*   break; */
+  /**/
+  /* case Right: */
+  /*   for (int i = 0; i < 7; i++) { */
+  /*     if (vl53_checkForObstacle() == 0) { */
+  /*       mpu_getValues();                    // get values from mpu */
+  /*       pid_walking.Compute();              // compute PID */
+  /*       compensateMoveForward();            // update move */
+  /*       runServoPrgV(Forward, ForwardStep); // move forward */
+  /*     } else { */
+  /*       break; */
+  /*     } */
+  /*   } */
+  /**/
+  /*   while (mpu_directionAngle > 15 || mpu_directionAngle < -15) { */
+  /*     runServoPrgV(Turnleft, TurnleftStep); // turn left */
+  /*     mpu_getValues();                      // get values from mpu */
+  /*     side = 1; */
+  /*   } */
+  /*   currentState = Front; */
+  /*   break; */
+  /**/
+  /* case Left: */
+  /*   for (int i = 0; i < 7; i++) { */
+  /*     if (vl53_checkForObstacle() == 0) { */
+  /*       mpu_getValues();       // get values from mpu */
+  /*       pid_walking.Compute(); // compute PID */
+  /*       compensateMoveForward(); */
+  /*       runServoPrgV(Forward, ForwardStep); // move forward */
+  /*     } else { */
+  /*       break; */
+  /*     } */
+  /*   } */
+  /**/
+  /*   while (mpu_directionAngle > 15 || mpu_directionAngle < -15) { */
+  /*     runServoPrgV(Turnright, TurnrightStep); // turn right */
+  /*     side = 0; */
+  /*   } */
+  /**/
+  /*   currentState = Front; */
+  /*   break; */
+
+  /* case Stair: */
+  /*   runServoPrgV(Forward, ForwardStep); // move forward */
+  /*   runServoPrgV(Climb, ClimbStep);     // climb stair */
+  /**/
+  /*   currentState = Front; */
+  /*   break; */
+  /* } */
+}
 
 /////////////////////////////  Setup  /////////////////////////////////
 
@@ -438,13 +398,19 @@ void setup() {
 /////////////////////////////  Loop  ////////////////////////////////
 
 void loop() {
-  /* mpu_testDebug(); */
-  /* vl53_testDebug(); */
-  /* delay(1000); */
-  /* run(); */
-  runServoPrgV(movements.forward, Movements::FORWARD_N_STEPS); // move forward
-  pid_calculate();
-  compensateMoveForward();
+  auto program = movements.forward;
+  auto numberOfSteps = Movements::FORWARD_N_STEPS;
+
+  if (vl53_checkForObstacle()) {
+    program = movements.checkUp;
+    numberOfSteps = Movements::CHECK_UP_N_STEPS;
+    runServoPrgV(program, numberOfSteps); // checkup
+    delay(2000);
+  } else {
+    pid_compensate();
+  }
+
+  runServoPrgV(program, numberOfSteps); // move forward
 }
 
 /////////////////////////////  End  /////////////////////////////////

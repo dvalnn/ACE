@@ -1,3 +1,17 @@
+// Spider_mini (Top View)
+//  -----     Front     -----
+// |  L4 |             |  L1 |
+// | GP6 |             | GP0 |
+//  ----- -----   ----- -----
+//       |     | |     |
+//       | GP7 | | GP1 |
+//        -----   -----
+//       |     | |     |
+//       | GP8 | | GP2 |
+//  ----- -----   ----- -----
+// |  L4 |             |  L2 |
+// | GP9 |             | GP3 |
+//  -----               -----
 #ifndef MOVEMENTS_H
 #define MOVEMENTS_H
 
@@ -10,6 +24,14 @@ public:
   int zero[ZERO_N_STEPS][N_ACTIONS] = {
       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms
       {30, 90, 90, 150, 150, 90, 90, 30, 1000}, // zero position
+  };
+
+  // Check up
+  const static int CHECK_UP_N_STEPS = 2;
+  int checkUp[CHECK_UP_N_STEPS][N_ACTIONS] = {
+      // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms
+      {15, 90, 90, 165, 165, 90, 90, 15, 1000}, // standby
+      {0, 0, 0, -70, 0, 0, 0, 70, 400},         // leg2,4 up
   };
 
   const static int FORWARD_N_STEPS = 11;
@@ -39,13 +61,6 @@ public:
 /*       {-20, 0, 0, 20, 20, 0, 0, -20, 200},   // standby */
 /*   }; */
 /**/
-/*   // Check up */
-/*   const int checkupStep = 2; */
-/*   int checkup[N_SERVOS][N_ACTIONS] = { */
-/*       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms */
-/*       {15, 90, 90, 165, 165, 90, 90, 15, 200}, // standby */
-/*       {0, 0, 0, -70, 0, 0, 0, 70, 400},        // leg2,4 up */
-/*   }; */
 /**/
 /*   // Forward */
 /**/
