@@ -11,75 +11,46 @@
 
 #include "movements.h"
 
-int side = 0;          // last side
-int aux_direction = 0; // auxiliar variable for direction
-int aux_climb = 0;     // auxiliar variable for climb
-
-int servoCal[] = {-3, -4, 2, 9, -3, 0, 0, 0};  // Servo calibration data
-int servoPos[] = {0, 0, 0, 0, 0, 0, 0, 0};     // Servo current position
-int servoPrevPrg[] = {0, 0, 0, 0, 0, 0, 0, 0}; // Servo previous prg
-int servoPrgPeriod = 20;                       // 50 ms
+///////////////////////////// Movement /////////////////////////////////
 
 #define N_SERVOS 8
-Servo servo[N_SERVOS]; // Servo object
-Movements movements;   // Movements object
-
-/////////////////////////////  Functions  /////////////////////////////////
-
-// runServoPrg
-void runServoPrg(const int servoPrg[][Movements::N_ACTIONS], const int step) {
-  for (int i = 0; i < step; i++) { // Loop for step
-
-    int totalTime =
-        servoPrg[i][Movements::N_ACTIONS - 1]; // Total time of this step
-
-    // Get servo start position
-    for (int s = 0; s < N_SERVOS; s++) {
-      servoPos[s] = servo[s].read() - servoCal[s];
-    }
-
-    // outer loop: time step
-    // inner loop: servo
-    for (int j = 0; j < totalTime / servoPrgPeriod; j++) {
-      for (int k = 0; k < N_SERVOS; k++) {
-        servo[k].write((map(j, 0, totalTime / servoPrgPeriod, servoPos[k],
-                            servoPrg[i][k])) +
-                       servoCal[k]);
-      }
-      delay(servoPrgPeriod);
-    }
-  }
-}
+int servoCalib[N_SERVOS] = {-3, -4, 2, 9, -3, 0, 0, 0}; // calibration data
+Servo servo[N_SERVOS];
+Movements movements;
 
 // runServoPrg vector mode
-void runServoProgV(const int servoPrg[][Movements::N_ACTIONS], const int step) {
-  for (int i = 0; i < step; i++) { // Loop for step
+void runServoProgV(const int servoProg[][Movements::N_ACTIONS],
+                   const int nSteps) {
 
-    int totalTime =
-        servoPrg[i][Movements::N_ACTIONS - 1]; // Total time of this step
+  int servoPos[N_SERVOS];
+  int servoPrevProg[N_SERVOS];
+  int servoPrgPeriodMS = 20;
 
+  for (int i = 0; i < nSteps; i++) { // Loop for step
     // Get servo start position
     for (int s = 0; s < N_SERVOS; s++) {
-      servoPos[s] = servo[s].read() - servoCal[s];
+      servoPos[s] = servo[s].read() - servoCalib[s];
     }
 
     for (int p = 0; p < N_SERVOS; p++) {
       if (i == 0) {
-        servoPrevPrg[p] = servoPrg[i][p];
+        servoPrevProg[p] = servoProg[i][p];
       } else {
-        servoPrevPrg[p] = servoPrevPrg[p] + servoPrg[i][p];
+        servoPrevProg[p] = servoPrevProg[p] + servoProg[i][p];
       }
     }
 
+    int totalTime = servoProg[i][Movements::N_ACTIONS - 1];
     // outer loop: time step
-    // inner loop: servo
-    for (int j = 0; j < totalTime / servoPrgPeriod; j++) {
+    for (int j = 0; j < totalTime / servoPrgPeriodMS; j++) {
+      // inner loop: servo
       for (int k = 0; k < N_SERVOS; k++) {
-        servo[k].write((map(j, 0, totalTime / servoPrgPeriod, servoPos[k],
-                            servoPrevPrg[k]) +
-                        servoCal[k]));
+        servo[k].write((map(j, 0, totalTime / servoPrgPeriodMS, servoPos[k],
+                            servoPrevProg[k]) +
+                        servoCalib[k]));
       }
-      delay(servoPrgPeriod);
+
+      delay(servoPrgPeriodMS);
     }
   }
 }
@@ -87,70 +58,59 @@ void runServoProgV(const int servoPrg[][Movements::N_ACTIONS], const int step) {
 /////////////////////////////  PID Controlers ///////////////////////////////
 
 // PID direction controller
-double setpoint, mpu_directionAngle, Output;
+double directionSetpoint, mpu_directionAngle, directionAdjust;
 const double Kp = 0.8, Ki = 5, Kd = 0;
-PID pid_walking(&mpu_directionAngle, &Output, &setpoint, Kp, Ki, Kd, DIRECT);
+PID directionPID(&mpu_directionAngle, &directionAdjust, &directionSetpoint, Kp,
+                 Ki, Kd, DIRECT);
 
 // PID climb controller
-double Setpoint2, mpu_climbAngle, Output2;
+double elevationSetpoint, mpu_climbAngle, elevationAdjust;
 const double Kp2 = 1.4, Ki2 = 0.5, Kd2 = 0;
-PID pid_climbing(&mpu_climbAngle, &Output2, &Setpoint2, Kp2, Ki2, Kd2, DIRECT);
+PID elevationPID(&mpu_climbAngle, &elevationAdjust, &elevationSetpoint, Kp2,
+                 Ki2, Kd2, DIRECT);
 
 // PID Direction Setup
 void pid_setup() {
   // turn the PID on
-  pid_walking.SetMode(AUTOMATIC);
-  pid_walking.SetOutputLimits(-30, 30); // set the output limits
-  pid_walking.SetSampleTime(10);        // refresh rate
-  pid_walking.SetTunings(Kp, Ki, Kd);   // set PID gains
-  setpoint = 0;                         // setpoint
+  directionPID.SetMode(AUTOMATIC);
+  directionPID.SetOutputLimits(-30, 30); // set the output limits
+  directionPID.SetSampleTime(10);        // refresh rate
+  directionPID.SetTunings(Kp, Ki, Kd);   // set PID gains
+  directionSetpoint = 0;                 // setpoint
 
-  pid_climbing.SetMode(AUTOMATIC);
-  pid_climbing.SetOutputLimits(-20, 20);  // set the output limits
-  pid_climbing.SetSampleTime(10);         // refresh rate
-  pid_climbing.SetTunings(Kp2, Ki2, Kd2); // set PID gains
-  Setpoint2 = 0;
+  elevationPID.SetMode(AUTOMATIC);
+  elevationPID.SetOutputLimits(-20, 20);  // set the output limits
+  elevationPID.SetSampleTime(10);         // refresh rate
+  elevationPID.SetTunings(Kp2, Ki2, Kd2); // set PID gains
+  elevationSetpoint = 0;
 }
 
-/////////////////////////////  VL53L0X Sensor ///////////////////////////////
-
-VL53L0X vl53_sensor; // VL53L0X object
-elapsedMillis vl53_lastSampleTime;
-
-const long vl53_SAMPLE_PERIOD_MS = 500;
-const int vl53_DET_THRESH = 135;
-
-// sensorSetup
-void vl53_setup() {
-  // Initialize the sensor
-  if (!vl53_sensor.init(0x29)) {
-    Serial.println("Failed to detect and initialize sensor!");
-    return;
-  }
-  Serial.println("VL53L0X sensor detected!");
-  vl53_sensor.setTimeout(500);
+// Direction Update
+void compensateDirection() {
+  movements.forward[4][1] = -45 + directionAdjust;
+  movements.forward[6][1] = 45 - directionAdjust;
+  movements.forward[4][2] = 45 - directionAdjust;
+  movements.forward[7][2] = -45 + directionAdjust;
+  movements.forward[7][5] = 45 + directionAdjust;
+  movements.forward[10][5] = -45 - directionAdjust;
+  movements.forward[1][6] = -45 - directionAdjust;
+  movements.forward[4][6] = 45 + directionAdjust;
 }
 
-// check sensor
-bool vl53_checkForObstacle() {
-  if (vl53_lastSampleTime < vl53_SAMPLE_PERIOD_MS)
-    return false;
-
-  vl53_lastSampleTime = 0;
-
-  uint16_t distance = vl53_sensor.readRangeSingleMillimeters();
-  if (distance > 0 && distance < vl53_DET_THRESH) {
-    return true;
-  }
-
-  return false;
+// Climb Update
+void compensateElevation() {
+  movements.forward[0][0] = 30 + elevationAdjust;
+  movements.forward[0][3] = 150 + elevationAdjust;
+  movements.forward[0][4] = 150 - elevationAdjust;
+  movements.forward[0][7] = 30 - elevationAdjust;
 }
 
-void vl53_testDebug() {
-  uint16_t distance = vl53_sensor.readRangeSingleMillimeters();
-  Serial.print("Distance: ");
-  Serial.print(distance);
-  Serial.print(" mm");
+void pid_compensate() {
+  directionPID.Compute(); // compute PID
+  elevationPID.Compute(); // compute PID2
+
+  compensateElevation(); // update climb
+  compensateDirection(); // update move
 }
 
 /////////////////////////////  MPU6050  ////////////////////////////////////
@@ -201,7 +161,7 @@ void mpu_setup() {
 }
 
 // read mpu values
-void mpu_getValues() {
+void mpu_update() {
   uint8_t fifoBuffer[64]; // FIFO storage buffer
   Quaternion q;           // [w, x, y, z]
   VectorFloat gravity;    // [x, y, z]
@@ -217,16 +177,56 @@ void mpu_getValues() {
 }
 
 void mpu_testDebug() {
-  mpu_getValues(); // get values from mpu
+  mpu_update(); // get values from mpu
   Serial.print("Direction angle : ");
   Serial.println(mpu_directionAngle);
   Serial.print("Climb angle : ");
   Serial.println(mpu_climbAngle);
 }
 
-/////////////////////////////  Servo  ////////////////////////////////////
+/////////////////////////////  VL53L0X Sensor ///////////////////////////////
 
-// servoSetup
+VL53L0X vl53_sensor; // VL53L0X object
+elapsedMillis vl53_lastSampleTime;
+
+const long vl53_SAMPLE_PERIOD_MS = 500;
+const int vl53_DET_THRESH = 135;
+
+// sensorSetup
+void vl53_setup() {
+  // Initialize the sensor
+  if (!vl53_sensor.init(0x29)) {
+    Serial.println("Failed to detect and initialize sensor!");
+    return;
+  }
+  Serial.println("VL53L0X sensor detected!");
+  vl53_sensor.setTimeout(500);
+}
+
+// check sensor
+bool vl53_checkForObstacle() {
+  if (vl53_lastSampleTime < vl53_SAMPLE_PERIOD_MS)
+    return false;
+
+  vl53_lastSampleTime = 0;
+
+  uint16_t distance = vl53_sensor.readRangeSingleMillimeters();
+  if (distance > 0 && distance < vl53_DET_THRESH) {
+    return true;
+  }
+
+  return false;
+}
+
+void vl53_testDebug() {
+  uint16_t distance = vl53_sensor.readRangeSingleMillimeters();
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.print(" mm");
+}
+
+/////////////////////////////  Setup  /////////////////////////////////
+
 void servoSetup() {
   // Servo Pin Set
   servo[0].attach(0);
@@ -237,66 +237,19 @@ void servoSetup() {
   servo[5].attach(7);
   servo[6].attach(8);
   servo[7].attach(9);
-
-  servo[0].write(90 + servoCal[0]);
-  servo[1].write(90 + servoCal[1]);
-  servo[2].write(90 + servoCal[2]);
-  servo[3].write(90 + servoCal[3]);
-  servo[4].write(90 + servoCal[4]);
-  servo[5].write(90 + servoCal[5]);
-  servo[6].write(90 + servoCal[6]);
-  servo[7].write(90 + servoCal[7]);
 }
-
-/////////////////////////////  Main  /////////////////////////////////
-
-// Direction Update
-void compensateDirection() {
-  aux_direction = Output;
-  movements.forward[4][1] = -45 + aux_direction;
-  movements.forward[6][1] = 45 - aux_direction;
-  movements.forward[4][2] = 45 - aux_direction;
-  movements.forward[7][2] = -45 + aux_direction;
-  movements.forward[7][5] = 45 + aux_direction;
-  movements.forward[10][5] = -45 - aux_direction;
-  movements.forward[1][6] = -45 - aux_direction;
-  movements.forward[4][6] = 45 + aux_direction;
-}
-
-// Climb Update
-void compensateElevation() {
-  aux_climb = Output2;
-  movements.forward[0][0] = 30 + aux_climb;
-  movements.forward[0][3] = 150 + aux_climb;
-  movements.forward[0][4] = 150 - aux_climb;
-  movements.forward[0][7] = 30 - aux_climb;
-}
-
-void pid_compensate() {
-
-  mpu_getValues(); // get values from mpu
-
-  pid_walking.Compute();  // compute PID
-  pid_climbing.Compute(); // compute PID2
-
-  compensateElevation(); // update climb
-  compensateDirection(); // update move
-}
-
-/////////////////////////////  Setup  /////////////////////////////////
 
 void setup() {
   Wire.begin();          // join i2c bus
   Wire.setClock(400000); // 400kHz I2C clock.
   Serial.begin(115200);  // initialize serial communication
 
-  servoSetup(); // servo setup
-  Serial.println("Servo Zero");
-  runServoPrg(movements.zero, Movements::ZERO_N_STEPS); // zero position
-
   vl53_setup(); // vl53 setup
   mpu_setup();  // mpu setup
   pid_setup();  // PID setup
+
+  servoSetup();                                           // servo setup
+  runServoProgV(movements.zero, Movements::ZERO_N_STEPS); // zero position
 }
 
 /////////////////////////////  Loop  ////////////////////////////////
@@ -317,22 +270,22 @@ void switchDirection() {
   switch (direction) {
 
   case FRONT:
-    setpoint = 90;
+    directionSetpoint = 90;
     direction = RIGHT;
     return;
 
   case RIGHT:
-    setpoint = 180;
+    directionSetpoint = 180;
     direction = BACK;
     return;
 
   case BACK:
-    setpoint = -90;
+    directionSetpoint = -90;
     direction = LEFT;
     return;
 
   case LEFT:
-    setpoint = 0;
+    directionSetpoint = 0;
     direction = FRONT;
     return;
   }
@@ -377,6 +330,7 @@ void run() {
     stepsRightAcc++;
   } else {
     // only when moving forward
+    mpu_update();
     pid_compensate();
   }
 
