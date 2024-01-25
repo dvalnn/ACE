@@ -244,12 +244,14 @@ void setup() {
   Wire.setClock(400000); // 400kHz I2C clock.
   Serial.begin(115200);  // initialize serial communication
 
+  servoSetup();
+  runServoProgV(movements.zero, Movements::ZERO_N_STEPS);
+
+  Serial.println("Hello World!");
+
   vl53_setup(); // vl53 setup
   mpu_setup();  // mpu setup
   pid_setup();  // PID setup
-
-  servoSetup();                                           // servo setup
-  runServoProgV(movements.zero, Movements::ZERO_N_STEPS); // zero position
 }
 
 /////////////////////////////  Loop  ////////////////////////////////
@@ -291,19 +293,20 @@ void switchDirection() {
   }
 }
 
-bool stair = true;
+bool mightBeClimbable = true;
 void run() {
   int numberOfSteps = Movements::FORWARD_N_STEPS;
   auto program = movements.forward;
 
   bool obstacle = vl53_checkForObstacle();
-  if (obstacle && stair) {
+  if (obstacle && mightBeClimbable) {
     runServoProgV(movements.checkUp, Movements::CHECK_UP_N_STEPS);
     if (!vl53_checkForObstacle()) {
+      runServoProgV(movements.forward, Movements::FORWARD_N_STEPS);
       runServoProgV(movements.climb, Movements::CLIMB_N_STEPS);
       return;
     } else {
-      stair = false;
+      mightBeClimbable = false;
     }
   }
 
@@ -316,7 +319,7 @@ void run() {
     stepsRight++;
   } else {
     stepsRightAcc = 0;
-    stair = true;
+    mightBeClimbable = true;
   }
 
   if (stepsBack) {
