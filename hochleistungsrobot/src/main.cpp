@@ -22,8 +22,8 @@ Movements movements;
 void runServoProgV(const int servoProg[][Movements::N_ACTIONS],
                    const int nSteps) {
 
-  int servoPos[N_SERVOS];
-  int servoPrevProg[N_SERVOS];
+  int servoPos[N_SERVOS] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int servoPrevProg[N_SERVOS] = {0, 0, 0, 0, 0, 0, 0, 0};
   int servoPrgPeriodMS = 20;
 
   for (int i = 0; i < nSteps; i++) { // Loop for step
@@ -99,10 +99,10 @@ void compensateDirection() {
 
 // Climb Update
 void compensateElevation() {
-  movements.forward[0][0] = 30 + elevationAdjust;
-  movements.forward[0][3] = 150 + elevationAdjust;
-  movements.forward[0][4] = 150 - elevationAdjust;
-  movements.forward[0][7] = 30 - elevationAdjust;
+  movements.forward[0][0] = 15 + elevationAdjust;
+  movements.forward[0][3] = 165 + elevationAdjust;
+  movements.forward[0][4] = 165 - elevationAdjust;
+  movements.forward[0][7] = 15 - elevationAdjust;
 }
 
 void pid_compensate() {
@@ -182,6 +182,7 @@ void mpu_testDebug() {
   Serial.println(mpu_directionAngle);
   Serial.print("Climb angle : ");
   Serial.println(mpu_climbAngle);
+  delay(100);
 }
 
 /////////////////////////////  VL53L0X Sensor ///////////////////////////////
@@ -222,7 +223,8 @@ void vl53_testDebug() {
   uint16_t distance = vl53_sensor.readRangeSingleMillimeters();
   Serial.print("Distance: ");
   Serial.print(distance);
-  Serial.print(" mm");
+  Serial.println(" mm");
+  delay(100);
 }
 
 /////////////////////////////  Setup  /////////////////////////////////
@@ -247,7 +249,7 @@ void setup() {
   servoSetup();
   runServoProgV(movements.zero, Movements::ZERO_N_STEPS);
 
-  Serial.println("Hello World!");
+  delay(2000);
 
   vl53_setup(); // vl53 setup
   mpu_setup();  // mpu setup
@@ -342,6 +344,7 @@ void run() {
 
 void loop() {
   // main
+  /* vl53_testDebug(); */
   run();
 }
 

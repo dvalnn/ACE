@@ -23,7 +23,7 @@ public:
   const static int ZERO_N_STEPS = 1;
   int zero[ZERO_N_STEPS][N_ACTIONS] = {
       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms
-      {25, 90, 90, 155, 155, 90, 90, 25, 1000}, // zero position
+      {20, 90, 90, 160, 160, 90, 90, 20, 1000}, // zero position
   };
 
   // Check up
@@ -37,7 +37,7 @@ public:
   const static int FORWARD_N_STEPS = 11;
   int forward[FORWARD_N_STEPS][N_ACTIONS] = {
       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms
-      {25, 90, 90, 155, 155, 90, 90, 25, 100}, // zero position
+      {20, 90, 90, 160, 160, 90, 90, 20, 100}, // zero position
       {20, 0, 0, 0, 0, 0, -45, 20, 100},       // leg1,4 up; leg4 fw
       {-20, 0, 0, 0, 0, 0, 0, -20, 100},       // leg1,4 dn
       {0, 0, 0, -20, -20, 0, 0, 0, 100},       // leg2,3 up
