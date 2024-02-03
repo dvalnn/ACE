@@ -209,7 +209,7 @@ components and does not implement any led-related functionalities. As such it,
 it comes with a public API that allows the user to interact with the hourglass
 and an overload of the `operator std::string()` to allow for easy printing of
 the current state of the hourglass\
- This class is also dependent on the `elapsedMillis` library (see [3.1](#3.1-third-party-libraries-and-functions)).
+This class is also dependent on the `elapsedMillis` library (see [3.1](#3.1-third-party-libraries-and-fns)).
 
 An Hourglass object is instantiated by defining the number of steps and the
 time for each step in milliseconds. The corresponding total time is then
