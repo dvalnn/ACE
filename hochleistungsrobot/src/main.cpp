@@ -190,6 +190,8 @@ void mpu_testDebug() {
 VL53L0X vl53_sensor; // VL53L0X object
 elapsedMillis vl53_lastSampleTime;
 
+bool vl53_ready = false;
+
 const long vl53_SAMPLE_PERIOD_MS = 500;
 const int vl53_DET_THRESH = 135;
 
@@ -202,6 +204,7 @@ void vl53_setup() {
   }
   Serial.println("VL53L0X sensor detected!");
   vl53_sensor.setTimeout(500);
+  vl53_ready = true;
 }
 
 // check sensor
@@ -343,9 +346,14 @@ void run() {
 }
 
 void loop() {
-  // main
-  /* vl53_testDebug(); */
-  run();
+  if (dmpReady && vl53_ready)
+    run();
+  else {
+    Serial.print("dmpReady: ");
+    Serial.println(dmpReady);
+    Serial.print("vl53_ready: ");
+    Serial.println(vl53_ready);
+  }
 }
 
 /////////////////////////////  End  /////////////////////////////////
