@@ -22,21 +22,21 @@ public:
 
   const static int ZERO_N_STEPS = 1;
   int zero[ZERO_N_STEPS][N_ACTIONS] = {
-      // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms
+      // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms
       {20, 90, 90, 160, 160, 90, 90, 20, 1000}, // zero position
   };
 
   // Check up
   const static int CHECK_UP_N_STEPS = 2;
   int checkUp[CHECK_UP_N_STEPS][N_ACTIONS] = {
-      // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms
+      // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms
       {15, 90, 90, 165, 165, 90, 90, 15, 200}, // standby
       {0, 0, 0, -70, 0, 0, 0, 70, 400},        // leg2,4 up
   };
 
   const static int FORWARD_N_STEPS = 11;
   int forward[FORWARD_N_STEPS][N_ACTIONS] = {
-      // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms
+      // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms
       {20, 90, 90, 160, 160, 90, 90, 20, 100}, // zero position
       {20, 0, 0, 0, 0, 0, -45, 20, 100},       // leg1,4 up; leg4 fw
       {-20, 0, 0, 0, 0, 0, 0, -20, 100},       // leg1,4 dn
@@ -53,7 +53,7 @@ public:
   // Move Right
   const static int CRAB_RIGHT_N_STEPS = 11;
   int crabRight[CRAB_RIGHT_N_STEPS][N_ACTIONS] = {
-      // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms
+      // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms
       {30, 90, 90, 150, 150, 90, 90, 30, 100}, // standby
       {0, 0, 0, -20, -20, -45, 0, 0, 100},     // leg2,3 up; leg3 fw
       {0, 0, 0, 20, 20, 0, 0, 0, 100},         // leg2,3 dn
@@ -70,7 +70,7 @@ public:
   // Backward
   const static int BACK_N_STEPS = 11;
   int back[BACK_N_STEPS][N_ACTIONS] = {
-      // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms
+      // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms
       {30, 90, 90, 150, 150, 90, 90, 30, 100}, // standby
       {20, -45, 0, 0, 0, 0, 0, 20, 100},       // leg4,1 up; leg1 fw
       {-20, 0, 0, 0, 0, 0, 0, -20, 100},       // leg4,1 dn
@@ -87,7 +87,7 @@ public:
   // Climb
   const static int CLIMB_N_STEPS = 33;
   int climb[CLIMB_N_STEPS][N_ACTIONS] = {
-      // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms
+      // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms
       {15, 90, 90, 165, 165, 90, 90, 15, 200}, // standby
       {20, 0, 0, 0, 0, 0, -50, 20, 200},       // leg1,4 up; leg4 fw
       {-20, 0, 0, 0, 0, 0, 0, -20, 200},       // leg1,4 dn
@@ -130,7 +130,7 @@ public:
 /*   // Move Left */
 /*   const int MoveleftStep = 11; */
 /*   const int Moveleft[][N_ACTIONS] = { */
-/*       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms */
+/*       // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms */
 /*       {30, 90, 90, 150, 150, 90, 90, 30, 100}, // standby */
 /*       {0, 0, -45, -20, -20, 0, 0, 0, 100},     // leg3,2 up; leg2 fw */
 /*       {0, 0, 0, 20, 20, 0, 0, 0, 100},         // leg3,2 dn */
@@ -145,7 +145,7 @@ public:
 /*   // Standby */
 /*   const int standbySet = 2; */
 /*   int standby[][N_ACTIONS] = { */
-/*       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms */
+/*       // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms */
 /*       {90, 90, 90, 90, 90, 90, 90, 90, 200}, // prep standby */
 /*       {-20, 0, 0, 20, 20, 0, 0, -20, 200},   // standby */
 /*   }; */
@@ -158,7 +158,7 @@ public:
 /*   // Turn left */
 /*   const int TurnleftStep = 8; */
 /*   const int Turnleft[][N_ACTIONS] = { */
-/*       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms */
+/*       // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms */
 /*       {30, 90, 90, 150, 150, 90, 90, 30, 100}, // standby */
 /*       {20, 0, 0, 0, 0, 0, 0, 20, 100},         // leg1,4 up */
 /*       {0, 45, 0, 0, 0, 0, 45, 0, 100},         // leg1,4 turn */
@@ -172,7 +172,7 @@ public:
 /*   // Turn right */
 /*   const int TurnrightStep = 8; */
 /*   const int Turnright[][N_ACTIONS] = { */
-/*       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms */
+/*       // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms */
 /*       {30, 90, 90, 150, 150, 90, 90, 30, 100}, // standby */
 /*       {0, 0, 0, -20, -20, 0, 0, 0, 100},       // leg2,3 up */
 /*       {0, 0, -45, 0, 0, -45, 0, 0, 100},       // leg2,3 turn */
@@ -186,7 +186,7 @@ public:
 /*   // Lie */
 /*   const int LieStep = 6; */
 /*   const int Lie[][N_ACTIONS] = { */
-/*       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms */
+/*       // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms */
 /*       {30, 90, 90, 150, 150, 80, 90, 30, 100}, // standby */
 /*       {150, 0, 0, -20, 0, 0, 0, 20, 200},      // leg1 maxup and leg2,4
    up */
@@ -199,7 +199,7 @@ public:
 /*   // Say Hi */
 /*   const int SayhiStep = 4; */
 /*   const int Sayhi[][N_ACTIONS] = { */
-/*       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms */
+/*       // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms */
 /*       {0, 90, 90, 150, 180, 90, 90, 30, 200}, // leg1, 3 down */
 /*       {30, 0, 0, 0, -30, 0, 0, 0, 200},       // standby */
 /*       {-30, 0, 0, 0, 30, 0, 0, 0, 200},       // leg1, 3 down */
@@ -209,7 +209,7 @@ public:
 /*   // Fighting */
 /*   const int FightingStep = 11; */
 /*   const int Fighting[][N_ACTIONS] = { */
-/*       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms */
+/*       // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms */
 /*       {0, 90, 90, 180, 150, 90, 90, 30, 200},      // leg1, 2 down */
 /*       {0, -20, -20, 0, 0, -20, -20, 0, 200},       // body turn left */
 /*       {0, 40, 40, 0, 0, 40, 40, 0, 200},           // body turn right */
@@ -228,7 +228,7 @@ public:
 /*   // Push up */
 /*   const int PushupStep = 11; */
 /*   const int Pushup[][N_ACTIONS] = { */
-/*       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms */
+/*       // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms */
 /*       {30, 45, 38, 150, 150, 135, 147, 30, 300}, // start position */
 /*       {30, 0, 0, -40, -30, 0, 0, 0, 400},        // down */
 /*       {-30, 0, 0, 40, 30, 0, 0, 0, 500},         // up */
@@ -245,7 +245,7 @@ public:
 /*   // Sleep */
 /*   const int SleepStep = 2; */
 /*   const int Sleep[][N_ACTIONS] = { */
-/*       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms */
+/*       // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms */
 /*       {0, 90, 90, 150, 150, 90, 90, 0, 400}, // leg1,4 dn */
 /*       {0, -45, 45, 0, 0, 45, -45, 0, 400},   // protect myself */
 /*   }; */
@@ -253,7 +253,7 @@ public:
 /*   // Dancing 1 */
 /*   const int Dance1Step = 10; */
 /*   const int Dance1[][N_ACTIONS] = { */
-/*       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms */
+/*       // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms */
 /*       {30, 90, 90, 150, 150, 90, 90, 30, 300}, // leg1,2,3,4 up */
 /*       {-30, 0, 0, 0, 0, 0, 0, 0, 300},         // leg1 dn */
 /*       {30, 0, 0, 30, 0, 0, 0, 0, 300},         // leg1 up; leg2 dn */
@@ -269,7 +269,7 @@ public:
 /*   // Dancing 2 */
 /*   const int Dance2Step = 9; */
 /*   const int Dance2[][N_ACTIONS] = { */
-/*       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms */
+/*       // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms */
 /*       {30, 45, 135, 150, 150, 135, 45, 30, 300}, // leg1,2,3,4 two sides
  */
 /*       {30, 0, 0, -30, 0, 0, 0, 0, 300},          // leg1,2 up */
@@ -285,7 +285,7 @@ public:
 /*   // Dancing 3 */
 /*   const int Dance3Step = 10; */
 /*   const int Dance3[][N_ACTIONS] = { */
-/*       // GP0, GP1, GP2, GP3, GP4, GP5, GP6, GP7,  ms */
+/*       // GP0, GP1, GP2, GP3, GP6, GP7, GP8, GP9, ms */
 /*       {30, 45, 38, 150, 150, 135, 147, 30, 300}, // leg1,2,3,4 bk */
 /*       {30, 0, 0, -40, -30, 0, 0, 0, 300},        // leg1,2,3 up */
 /*       {-30, 0, 0, 40, 30, 0, 0, 0, 300},         // leg1,2,3 dn */
